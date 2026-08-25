@@ -3,6 +3,7 @@ import type { Creature } from './creature'
 import { ENERGY } from './config'
 import { FOOD_RADIUS } from './food'
 import type { Food } from './food'
+import type { SpatialHash } from './spatialHash'
 import { clamp, distSq } from '../utils/math'
 
 export function metabolicCostPerSec(creature: Creature): number {
@@ -32,6 +33,28 @@ export function findNearestFood(
   let best: Food | null = null
   let bestDistSq = radius * radius
   for (const f of foods) {
+    if (foodEaten.has(f.id)) continue
+    const d = distSq(creature.x, creature.y, f.x, f.y)
+    if (d <= bestDistSq) {
+      bestDistSq = d
+      best = f
+    }
+  }
+  return best
+}
+
+export function findNearestFoodViaHash(
+  creature: Creature,
+  hash: SpatialHash<Food>,
+  foodEaten: ReadonlySet<number>,
+  radius: number,
+  scratch: Food[],
+): Food | null {
+  hash.queryInto(creature.x, creature.y, radius, scratch)
+  let best: Food | null = null
+  let bestDistSq = radius * radius
+  for (let i = 0; i < scratch.length; i++) {
+    const f = scratch[i]
     if (foodEaten.has(f.id)) continue
     const d = distSq(creature.x, creature.y, f.x, f.y)
     if (d <= bestDistSq) {

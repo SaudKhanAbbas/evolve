@@ -1,16 +1,18 @@
-import { MAX_CREATURES, TICK_DURATION } from './config'
+import { MAX_CREATURES, SPATIAL_CELL_SIZE, TICK_DURATION } from './config'
 import { applySteering, integrateMotion } from './behavior'
 import type { Creature } from './creature'
 import {
   consumeFood,
   eatRadius,
-  findNearestFood,
+  findNearestFoodViaHash,
   metabolicCostPerSec,
   movementCostPerSec,
 } from './energy'
+import type { Food } from './food'
 import { regrowFood } from './food'
 import { canReproduce, reproduce } from './reproduction'
 import { Rng } from './rng'
+import { SpatialHash } from './spatialHash'
 import { createInitialWorld, creatureCapacity } from './world'
 import type { WorldState } from './world'
 import { distSq } from '../utils/math'
@@ -20,12 +22,19 @@ export class Simulation {
   readonly rng: Rng
   readonly world: WorldState
   private readonly allowRegrowth: boolean
+  private readonly foodHash: SpatialHash<Food>
+  private readonly foodScratch: Food[] = []
 
   constructor(seed: number, allowRegrowth = true) {
     this.seed = seed
     this.rng = new Rng(seed)
     this.allowRegrowth = allowRegrowth
     this.world = createInitialWorld(this.rng)
+    this.foodHash = new SpatialHash<Food>({
+      worldWidth: this.world.width,
+      worldHeight: this.world.height,
+      cellSize: SPATIAL_CELL_SIZE,
+    })
   }
 
   get tick(): number {
@@ -52,6 +61,8 @@ export class Simulation {
     const world = this.world
     world.tick += 1
     world.time += dt
+
+    this.rebuildFoodIndex()
 
     const eatenFoodIds = new Set<number>()
     let someoneDied = false
@@ -81,11 +92,12 @@ export class Simulation {
     creature.age += dt
     if (creature.reproductionCooldown > 0) creature.reproductionCooldown -= 1
 
-    const nearest = findNearestFood(
+    const nearest = findNearestFoodViaHash(
       creature,
-      this.world.food,
+      this.foodHash,
       eatenFoodIds,
       creature.genome.senseRadius,
+      this.foodScratch,
     )
     applySteering(creature, this.rng, { nearestFood: nearest, threat: null }, dt)
     integrateMotion(creature, dt, this.world.width, this.world.height)
@@ -106,6 +118,13 @@ export class Simulation {
       return true
     }
     return false
+  }
+
+  private rebuildFoodIndex(): void {
+    this.foodHash.clear()
+    for (const food of this.world.food) {
+      this.foodHash.insert(food.x, food.y, food)
+    }
   }
 
   private reproduceEligible(): void {
