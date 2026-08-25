@@ -34,7 +34,7 @@ reproduction, sound, touch support.
 | Phase | Deliverable                                                        | Status      |
 | ----- | ------------------------------------------------------------------ | ----------- |
 | 0     | Scaffold, tooling, docs                                            | ✅ Complete |
-| 1     | Sim engine (genetics, energy, lifecycle, spatial grid) + tests     | Next        |
+| 1     | Sim engine (genetics, energy, lifecycle, spatial grid) + tests     | ✅ Complete |
 | 2     | Rendering: procedural creatures, camera, animation                 | Planned     |
 | 3     | Interaction: inspector, controls, charts, overlays                 | Planned     |
 | 4     | Depth: predation tuning, speciation, environment zones             | Planned     |

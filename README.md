@@ -4,7 +4,16 @@ An interactive evolution simulator for the browser. Watch a population of proced
 bioluminescent organisms mutate, compete, and adapt over thousands of generations — driven purely
 by natural selection, never by scripted outcomes.
 
-> **Status:** Work in progress — Phase 0 (scaffolding) complete.
+> **Status:** Work in progress — simulation engine live (Phase 1 complete). Rendering, UI, and
+> polish phases ongoing.
+
+## Working Today
+
+- Deterministic seeded ecosystem: genomes, bounded mutation, energy economy, grazing,
+  reproduction, starvation — all verified by a 54-test Vitest suite including long-run
+  stability and seed-reproducibility checks
+- Live browser view of the evolving world (glowing procedural cells + plants)
+- Open `?seed=1234` in the URL to run any seed
 
 ## Planned Features
 
@@ -26,7 +35,7 @@ by natural selection, never by scripted outcomes.
 | UI         | Vanilla TS DOM overlay                |
 | Linting    | ESLint (typescript-eslint)            |
 | Formatting | Prettier                              |
-| Testing    | Vitest (from Phase 1)                 |
+| Testing    | Vitest                                |
 | Hosting    | GitHub Pages                          |
 
 ## Getting Started

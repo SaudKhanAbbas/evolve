@@ -22,13 +22,15 @@ npm run dev
 | `npm run lint`         | ESLint over the repo                 |
 | `npm run format`       | Prettier write                       |
 | `npm run format:check` | Prettier check (used before commits) |
+| `npm test`             | Run the full Vitest suite once       |
+| `npm run test:watch`   | Vitest in watch mode                 |
 
 ## Workflow
 
 Development proceeds in small milestones (see [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)). Each
 milestone:
 
-1. Is implemented and verified locally (`build` + `lint` + `format:check` green)
+1. Is implemented and verified locally (`build` + `lint` + `format:check` + `test` green)
 2. Gets reviewed via `git diff`
 3. Becomes exactly one meaningful commit — no micro-commits, no grab-bag commits
 
