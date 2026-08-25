@@ -27,7 +27,7 @@ describe('lifecycle', () => {
   })
 
   it('starves creatures when no food exists', () => {
-    const sim = new Simulation(102)
+    const sim = new Simulation(102, false)
     sim.world.food.length = 0
     const initialPopulation = sim.world.creatures.length
     sim.advance(90)

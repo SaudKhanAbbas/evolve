@@ -1,4 +1,4 @@
-import { TICK_DURATION } from './config'
+import { MAX_CREATURES, TICK_DURATION } from './config'
 import { applySteering, integrateMotion } from './behavior'
 import type { Creature } from './creature'
 import {
@@ -9,6 +9,7 @@ import {
   movementCostPerSec,
 } from './energy'
 import { regrowFood } from './food'
+import { canReproduce, reproduce } from './reproduction'
 import { Rng } from './rng'
 import { createInitialWorld, creatureCapacity } from './world'
 import type { WorldState } from './world'
@@ -18,10 +19,12 @@ export class Simulation {
   readonly seed: number
   readonly rng: Rng
   readonly world: WorldState
+  private readonly allowRegrowth: boolean
 
-  constructor(seed: number) {
+  constructor(seed: number, allowRegrowth = true) {
     this.seed = seed
     this.rng = new Rng(seed)
+    this.allowRegrowth = allowRegrowth
     this.world = createInitialWorld(this.rng)
   }
 
@@ -59,7 +62,10 @@ export class Simulation {
       someoneDied = someoneDied || died
     }
 
-    regrowFood(world, this.rng)
+    this.reproduceEligible()
+    if (this.allowRegrowth) {
+      regrowFood(world, this.rng)
+    }
 
     if (someoneDied) {
       world.creatures = world.creatures.filter((c) => c.alive)
@@ -100,5 +106,20 @@ export class Simulation {
       return true
     }
     return false
+  }
+
+  private reproduceEligible(): void {
+    const world = this.world
+    if (world.creatures.length >= MAX_CREATURES) return
+
+    const births: Creature[] = []
+    for (const creature of world.creatures) {
+      if (!canReproduce(creature)) continue
+      births.push(reproduce(creature, world.nextEntityId++, this.rng))
+      if (world.creatures.length + births.length >= MAX_CREATURES) break
+    }
+    if (births.length > 0) {
+      world.creatures.push(...births)
+    }
   }
 }
