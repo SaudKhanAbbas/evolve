@@ -59,8 +59,7 @@ describe('headless stability', () => {
   it('exerts real selection pressure: traits drift from their initial spread', () => {
     const sim = runHeadless(777, 12000)
     const avgSpeed =
-      sim.world.creatures.reduce((s, c) => s + c.genome.maxSpeed, 0) /
-      sim.world.creatures.length
+      sim.world.creatures.reduce((s, c) => s + c.genome.maxSpeed, 0) / sim.world.creatures.length
     expect(avgSpeed).toBeGreaterThan(0)
     expect(avgSpeed).toBeLessThan(3)
     expect(maxGeneration(sim.world.creatures)).toBeGreaterThan(5)
