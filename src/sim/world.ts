@@ -19,6 +19,7 @@ export interface WorldState {
   width: number
   height: number
   nextEntityId: number
+  foodDebt: number
   creatures: Creature[]
   food: Food[]
 }
@@ -34,6 +35,7 @@ export function createInitialWorld(rng: Rng): WorldState {
     width: WORLD_WIDTH,
     height: WORLD_HEIGHT,
     nextEntityId: 1,
+    foodDebt: 0,
     creatures: [],
     food: [],
   }

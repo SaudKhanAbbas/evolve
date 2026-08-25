@@ -15,6 +15,8 @@ export const MUTATION = {
   strength: 0.06,
 } as const
 
+export const SPEED_SCALE = 45
+
 export const ENERGY = {
   perSize: 80,
   startFraction: 0.7,
@@ -26,3 +28,5 @@ export const ENERGY = {
   childShare: 0.5,
   cooldownTicks: 90,
 } as const
+
+export const REGEN_RATE_PER_SEC = 60
