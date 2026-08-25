@@ -1,10 +1,18 @@
 import { TICK_DURATION } from './config'
+import { applySteering, integrateMotion } from './behavior'
 import type { Creature } from './creature'
-import { consumeFood, findNearestEdible, metabolicCostPerSec, movementCostPerSec } from './energy'
+import {
+  consumeFood,
+  eatRadius,
+  findNearestFood,
+  metabolicCostPerSec,
+  movementCostPerSec,
+} from './energy'
 import { regrowFood } from './food'
 import { Rng } from './rng'
 import { createInitialWorld, creatureCapacity } from './world'
 import type { WorldState } from './world'
+import { distSq } from '../utils/math'
 
 export class Simulation {
   readonly seed: number
@@ -67,14 +75,23 @@ export class Simulation {
     creature.age += dt
     if (creature.reproductionCooldown > 0) creature.reproductionCooldown -= 1
 
+    const nearest = findNearestFood(
+      creature,
+      this.world.food,
+      eatenFoodIds,
+      creature.genome.senseRadius,
+    )
+    applySteering(creature, this.rng, { nearestFood: nearest, threat: null }, dt)
+    integrateMotion(creature, dt, this.world.width, this.world.height)
+
     const drainPerSec = metabolicCostPerSec(creature) + movementCostPerSec(creature)
     creature.energy -= drainPerSec * dt
 
-    if (creature.energy > 0) {
-      const food = findNearestEdible(creature, this.world.food, eatenFoodIds)
-      if (food !== null && creature.energy < capacity - 1e-6) {
-        consumeFood(creature, capacity, food)
-        eatenFoodIds.add(food.id)
+    if (creature.energy > 0 && nearest !== null && creature.energy < capacity - 1e-6) {
+      const eatRange = eatRadius(creature)
+      if (distSq(creature.x, creature.y, nearest.x, nearest.y) <= eatRange * eatRange) {
+        consumeFood(creature, capacity, nearest)
+        eatenFoodIds.add(nearest.id)
       }
     }
 

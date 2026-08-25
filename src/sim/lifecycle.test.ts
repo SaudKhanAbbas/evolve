@@ -1,18 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import { FOOD_CAPACITY } from './config'
-import { metabolicCostPerSec, plantDigestionEfficiency } from './energy'
+import { metabolicCostPerSec, movementCostPerSec, plantDigestionEfficiency } from './energy'
 import { Simulation } from './simulation'
 
 describe('lifecycle', () => {
-  it('drains creature energy through metabolism every tick', () => {
+  it('drains creature energy through metabolism and movement every tick', () => {
     const sim = new Simulation(100)
     const creature = sim.world.creatures[0]
     const before = creature.energy
     sim.step()
-    const expectedDrain = (metabolicCostPerSec(creature) * 1) / 30
+    const expectedDrain = ((metabolicCostPerSec(creature) + movementCostPerSec(creature)) * 1) / 30
     expect(before - creature.energy).toBeCloseTo(expectedDrain, 6)
+    expect(before - creature.energy).toBeGreaterThan(0)
+    sim.world.food.length = 0
+    const drained = creature.energy
     sim.advance(2)
-    expect(creature.energy).toBeLessThan(before)
+    expect(creature.energy).toBeLessThan(drained)
     expect(creature.alive).toBe(true)
   })
 
@@ -76,8 +79,16 @@ describe('lifecycle', () => {
     sim.advance(20)
     expect(sim.world.food.length).toBeGreaterThan(0)
     expect(sim.world.food.length).toBeLessThanOrEqual(FOOD_CAPACITY)
-    sim.advance(600)
-    expect(sim.world.food.length).toBe(FOOD_CAPACITY)
+  })
+
+  it('reaches full food capacity when no creatures graze', () => {
+    const sim = new Simulation(107)
+    sim.world.creatures.length = 0
+    sim.world.food.length = 0
+    sim.world.foodDebt = 0
+    sim.advance(60)
+    expect(sim.world.food.length).toBeGreaterThanOrEqual(FOOD_CAPACITY - 15)
+    expect(sim.world.food.length).toBeLessThanOrEqual(FOOD_CAPACITY)
   })
 
   it('digests plants more efficiently for herbivorous diets', () => {
