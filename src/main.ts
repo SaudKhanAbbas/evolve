@@ -2,6 +2,8 @@ import './style.css'
 import { TICK_RATE } from './sim/config'
 import { Simulation } from './sim/simulation'
 import { Renderer } from './render/renderer'
+import { Camera } from './render/camera'
+import { attachInput } from './ui/input'
 
 function seedFromUrl(): number {
   const raw = Number(new URLSearchParams(window.location.search).get('seed'))
@@ -16,6 +18,9 @@ const hud = document.querySelector<HTMLDivElement>('#hud')
 
 const simulation = new Simulation(seedFromUrl())
 const renderer = new Renderer(canvas)
+const camera = new Camera()
+
+attachInput(canvas, camera, {})
 
 window.addEventListener('resize', () => renderer.resize())
 
@@ -34,7 +39,7 @@ function frame(now: number): void {
     accumulator -= STEP
   }
 
-  renderer.draw(simulation)
+  renderer.draw(simulation, camera)
 
   if (hud && ++framesUntilHud >= 10) {
     framesUntilHud = 0
