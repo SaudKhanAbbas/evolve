@@ -38,11 +38,16 @@ export function drawOrganism(
   drawY: number = creature.y,
   drawHeading: number = creature.heading,
   wavePhase: number = timeSec * (5 + creature.genome.metabolism * 4) + creature.id * 1.7,
+  lean: number = 0,
 ): void {
   const g = creature.genome
   const shape = organismShape(g)
-  const rx = shape.radiusX
-  const ry = shape.radiusY
+  const stretch =
+    1 +
+    0.16 *
+      smoothstep(clamp(Math.hypot(creature.vx, creature.vy) / (g.maxSpeed * SPEED_SCALE), 0, 1))
+  const rx = shape.radiusX * stretch
+  const ry = shape.radiusY / stretch
   const hue = paletteHue(g.hue, g.diet)
   const energyFrac = clamp(creature.energy / creatureCapacity(g), 0, 1)
   const alpha = 0.5 + 0.45 * energyFrac
@@ -62,7 +67,7 @@ export function drawOrganism(
 
   ctx.save()
   ctx.translate(drawX, drawY)
-  ctx.rotate(drawHeading)
+  ctx.rotate(drawHeading + lean * 0.12)
   ctx.translate(0, idleBob)
 
   drawBloom(ctx, hue, 0, 0, Math.max(rx, ry) * 2.3, alpha * 0.7)
@@ -129,14 +134,15 @@ export function drawOrganism(
 
   function drawTail(): void {
     const amp = shape.tailAmplitude * (0.25 + 0.75 * smoothstep(speedNorm))
+    const tailLag = -lean * ry * 0.22
     ctx.strokeStyle = `hsla(${hue}, 90%, 68%, ${alpha * 0.65})`
     ctx.lineWidth = Math.max(ry * 0.22, 0.7)
     ctx.lineCap = 'round'
     ctx.beginPath()
-    ctx.moveTo(-rx * 0.8, 0)
+    ctx.moveTo(-rx * 0.8 + tailLag, 0)
     for (let i = 1; i <= TAIL_SEGMENTS; i++) {
       const t = i / TAIL_SEGMENTS
-      const x = -rx * 0.8 - shape.tailLength * t
+      const x = -rx * 0.8 + tailLag - shape.tailLength * t
       const y = Math.sin(wavePhase - t * 4.2) * amp * t
       ctx.lineTo(x, y)
     }

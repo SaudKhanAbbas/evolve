@@ -1,4 +1,5 @@
 import { config } from '../core/config'
+import { SPEED_SCALE } from '../sim/config'
 import { creatureRadius } from '../sim/creature'
 import type { Creature } from '../sim/creature'
 import type { Food } from '../sim/food'
@@ -16,6 +17,8 @@ interface InterpState {
   heading: number
   phase: number
   seenTick: number
+  targetLean: number
+  lean: number
 }
 
 export class Renderer {
@@ -113,13 +116,15 @@ export class Renderer {
       let y = creature.y
       let heading = creature.heading
       let phase = creature.id * 1.7
+      let lean = 0
       if (prev) {
         x = lerp(prev.x, creature.x, alpha)
         y = lerp(prev.y, creature.y, alpha)
         heading = lerpAngle(prev.heading, creature.heading, alpha)
         phase = prev.phase
+        lean = prev.lean
       }
-      drawOrganism(this.ctx, creature, timeSec, viewScale, x, y, heading, phase)
+      drawOrganism(this.ctx, creature, timeSec, viewScale, x, y, heading, phase, lean)
     }
     effects?.draw(this.ctx)
 
@@ -164,16 +169,18 @@ export class Renderer {
       }
     }
 
+    const ease = Math.min(1, frameDt * 12)
     const speedPhaseAdvance = frameDt
     for (const creature of sim.world.creatures) {
       const entry = this.prevById.get(creature.id)
       if (!entry) continue
       const speedNorm = clamp(
-        Math.hypot(creature.vx, creature.vy) / (creature.genome.maxSpeed * 45),
+        Math.hypot(creature.vx, creature.vy) / (creature.genome.maxSpeed * SPEED_SCALE),
         0,
         1,
       )
       entry.phase += speedPhaseAdvance * (3.5 + creature.genome.metabolism * 3 + speedNorm * 4.5)
+      entry.lean += (entry.targetLean - entry.lean) * ease
     }
   }
 
