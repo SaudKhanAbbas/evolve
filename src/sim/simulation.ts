@@ -8,6 +8,7 @@ import {
   metabolicCostPerSec,
   movementCostPerSec,
 } from './energy'
+import type { SimEvent, SimObserver } from './events'
 import type { Food } from './food'
 import { regrowFood } from './food'
 import { canReproduce, reproduce } from './reproduction'
@@ -22,19 +23,25 @@ export class Simulation {
   readonly rng: Rng
   readonly world: WorldState
   private readonly allowRegrowth: boolean
+  private readonly observer: SimObserver | undefined
   private readonly foodHash: SpatialHash<Food>
   private readonly foodScratch: Food[] = []
 
-  constructor(seed: number, allowRegrowth = true) {
+  constructor(seed: number, allowRegrowth = true, observer?: SimObserver) {
     this.seed = seed
     this.rng = new Rng(seed)
     this.allowRegrowth = allowRegrowth
+    this.observer = observer
     this.world = createInitialWorld(this.rng)
     this.foodHash = new SpatialHash<Food>({
       worldWidth: this.world.width,
       worldHeight: this.world.height,
       cellSize: SPATIAL_CELL_SIZE,
     })
+  }
+
+  private emit(type: SimEvent['type'], x: number, y: number, hue: number, size: number): void {
+    this.observer?.({ type, x, y, hue, size })
   }
 
   get tick(): number {
@@ -115,6 +122,7 @@ export class Simulation {
 
     if (creature.energy <= 0) {
       creature.alive = false
+      this.emit('death', creature.x, creature.y, creature.genome.hue, creature.genome.size)
       return true
     }
     return false
@@ -134,7 +142,9 @@ export class Simulation {
     const births: Creature[] = []
     for (const creature of world.creatures) {
       if (!canReproduce(creature)) continue
-      births.push(reproduce(creature, world.nextEntityId++, this.rng))
+      const child = reproduce(creature, world.nextEntityId++, this.rng)
+      births.push(child)
+      this.emit('birth', child.x, child.y, child.genome.hue, child.genome.size)
       if (world.creatures.length + births.length >= MAX_CREATURES) break
     }
     if (births.length > 0) {

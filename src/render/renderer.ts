@@ -4,6 +4,7 @@ import type { Food } from '../sim/food'
 import type { Simulation } from '../sim/simulation'
 import type { Camera } from './camera'
 import { drawOrganism } from './creatureArtist'
+import type { EffectSystem } from './effects'
 
 const GLOW_LIMIT = 400
 
@@ -33,7 +34,7 @@ export class Renderer {
     this.paintBackdrop(window.innerWidth, window.innerHeight)
   }
 
-  draw(sim: Simulation, camera: Camera): void {
+  draw(sim: Simulation, camera: Camera, effects?: EffectSystem): void {
     const w = window.innerWidth
     const h = window.innerHeight
     const timeSec = performance.now() / 1000
@@ -63,6 +64,7 @@ export class Renderer {
     for (const creature of sim.world.creatures) {
       drawOrganism(this.ctx, creature, timeSec, glow)
     }
+    effects?.draw(this.ctx)
 
     this.ctx.restore()
   }

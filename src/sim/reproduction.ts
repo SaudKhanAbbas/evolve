@@ -1,11 +1,13 @@
 import { createCreature } from './creature'
 import type { Creature } from './creature'
-import { ENERGY } from './config'
+import { ENERGY, WORLD_HEIGHT, WORLD_WIDTH } from './config'
 import { mutateGenome } from './genome'
 import type { Rng } from './rng'
 import { creatureCapacity } from './world'
+import { clamp } from '../utils/math'
 
 const SPAWN_OFFSET_STD = 8
+const ARENA_MARGIN = 2
 
 export function canReproduce(creature: Creature): boolean {
   return (
@@ -25,8 +27,8 @@ export function reproduce(parent: Creature, id: number, rng: Rng): Creature {
 
   const child = createCreature(
     id,
-    parent.x + rng.gauss(0, SPAWN_OFFSET_STD),
-    parent.y + rng.gauss(0, SPAWN_OFFSET_STD),
+    clamp(parent.x + rng.gauss(0, SPAWN_OFFSET_STD), ARENA_MARGIN, WORLD_WIDTH - ARENA_MARGIN),
+    clamp(parent.y + rng.gauss(0, SPAWN_OFFSET_STD), ARENA_MARGIN, WORLD_HEIGHT - ARENA_MARGIN),
     rng.angle(),
     Math.max(childPool, 0),
     parent.generation + 1,

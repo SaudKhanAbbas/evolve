@@ -69,10 +69,18 @@ describe('reproduce', () => {
     expect(child.reproductionCooldown).toBe(ENERGY.cooldownTicks)
   })
 
-  it('spawns the child near the parent', () => {
-    const parent = makeParent()
-    const child = reproduce(parent, 8, new Rng(11))
-    expect(Math.hypot(child.x - parent.x, child.y - parent.y)).toBeLessThan(40)
+  it('spawns the child near the parent and inside the arena', () => {
+    const rng = new Rng(11)
+    for (let i = 0; i < 200; i++) {
+      const edgeParent = makeParent()
+      edgeParent.x = 1
+      edgeParent.y = 1199
+      const child = reproduce(edgeParent, 8, rng)
+      expect(child.x).toBeGreaterThanOrEqual(2)
+      expect(child.x).toBeLessThanOrEqual(1598)
+      expect(child.y).toBeGreaterThanOrEqual(2)
+      expect(child.y).toBeLessThanOrEqual(1198)
+    }
   })
 
   it('inherits a mutated genome that stays within bounds', () => {

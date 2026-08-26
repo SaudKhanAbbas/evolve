@@ -3,6 +3,7 @@ import { TICK_RATE } from './sim/config'
 import { Simulation } from './sim/simulation'
 import { Renderer } from './render/renderer'
 import { Camera } from './render/camera'
+import { EffectSystem } from './render/effects'
 import { attachInput } from './ui/input'
 
 function seedFromUrl(): number {
@@ -16,7 +17,8 @@ if (!canvas) {
 }
 const hud = document.querySelector<HTMLDivElement>('#hud')
 
-const simulation = new Simulation(seedFromUrl())
+const effects = new EffectSystem()
+const simulation = new Simulation(seedFromUrl(), true, (e) => effects.handleEvent(e))
 const renderer = new Renderer(canvas)
 const camera = new Camera()
 
@@ -33,13 +35,14 @@ function frame(now: number): void {
   const elapsed = Math.min((now - last) / 1000, 0.1)
   last = now
   accumulator += elapsed
+  effects.update(elapsed)
 
   while (accumulator >= STEP) {
     simulation.step()
     accumulator -= STEP
   }
 
-  renderer.draw(simulation, camera)
+  renderer.draw(simulation, camera, effects)
 
   if (hud && ++framesUntilHud >= 10) {
     framesUntilHud = 0
