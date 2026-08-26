@@ -45,17 +45,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(45, 212, 191, 0.16);
-  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.22);
+  padding-bottom: 14px;
 }
 
 .panel-header h1 {
   margin: 0;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
-  letter-spacing: 0.42em;
-  color: #d9fff7;
-  text-indent: 0.42em;
+  letter-spacing: 0.46em;
+  color: #e6fffa;
+  text-indent: 0.46em;
+  text-shadow: 0 0 14px rgba(45, 212, 191, 0.35);
 }
 
 .status-line {
@@ -96,20 +97,22 @@ body {
 .panel-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .section-label {
   color: #4e8a80;
   font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
   font-size: 10px;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.1);
+  padding-bottom: 6px;
 }
 
 #hud {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
 
 #hud .stat-row,
@@ -123,14 +126,15 @@ body {
   color: #5da99e;
   font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
   font-size: 10.5px;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
 }
 
 #hud .stat-value {
-  color: #c9fff4;
+  color: #d9fff7;
   font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
-  font-size: 13px;
+  font-size: 13.5px;
   font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 10px rgba(45, 212, 191, 0.25);
 }
 
 .chart-block {
@@ -157,8 +161,10 @@ body {
 #chart-pop,
 #chart-speed {
   width: 100%;
-  height: 44px;
+  height: 52px;
   display: block;
+  border-radius: 4px;
+  background: rgba(45, 212, 191, 0.04);
 }
 
 /* ---------- center viewport ---------- */
