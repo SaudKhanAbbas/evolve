@@ -25,6 +25,19 @@ npm run dev
 | `npm test`             | Run the full Vitest suite once       |
 | `npm run test:watch`   | Vitest in watch mode                 |
 
+## Performance Benchmarks
+
+Headless benchmarks live in `src/sim/*.bench.test.ts` and stay **skipped** in normal runs. Run
+them with a real canvas backend (Skia via `@napi-rs/canvas`, installed as a dev dependency):
+
+```bash
+EVOLVE_BENCH=1 npx vitest run src/sim/sim.bench.test.ts    # sim ms/tick at 300-1200 creatures
+EVOLVE_BENCH=1 npx vitest run src/sim/render.bench.test.ts # draw ms/frame, full detail + fit zoom
+```
+
+Results print per population tier. Use them before/after any rendering change; the adaptive
+detail system (see ARCHITECTURE.md) is tuned against these numbers.
+
 ## Workflow
 
 Development proceeds in small milestones (see [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)). Each
