@@ -8,12 +8,22 @@ import { drawOrganism } from './creatureArtist'
 import { paletteHue } from './palette'
 import { Environment } from './environment'
 import type { EffectSystem } from './effects'
-import { clamp } from '../utils/math'
+import { clamp, lerp, lerpAngle } from '../utils/math'
+
+interface InterpState {
+  x: number
+  y: number
+  heading: number
+  phase: number
+  seenTick: number
+}
 
 export class Renderer {
   private readonly ctx: CanvasRenderingContext2D
   private readonly canvas: HTMLCanvasElement
   private readonly environment = new Environment()
+  private readonly prevById = new Map<number, InterpState>()
+  private lastInterpTick = -1
   private lastCamX = Number.NaN
   private lastCamY = Number.NaN
   private lastCamZoom = Number.NaN
@@ -55,7 +65,13 @@ export class Renderer {
     this.paintBackdrop(w, h)
   }
 
-  draw(sim: Simulation, camera: Camera, effects?: EffectSystem, selectedId?: number | null): void {
+  draw(
+    sim: Simulation,
+    camera: Camera,
+    effects?: EffectSystem,
+    selectedId?: number | null,
+    interpAlpha = 0,
+  ): void {
     const { w, h } = this.cssSize()
     if (w === 0 || h === 0) return
     const timeSec = performance.now() / 1000
@@ -64,6 +80,8 @@ export class Renderer {
       : 0
     this.lastFrameTimeSec = timeSec
     this.environment.update(frameDt)
+    const alpha = clamp(interpAlpha, 0, 1)
+    this.refreshInterpolationSnapshot(sim, frameDt)
 
     if (
       camera.x !== this.lastCamX ||
@@ -90,7 +108,18 @@ export class Renderer {
       this.drawFood(food, timeSec)
     }
     for (const creature of sim.world.creatures) {
-      drawOrganism(this.ctx, creature, timeSec, viewScale)
+      const prev = this.prevById.get(creature.id)
+      let x = creature.x
+      let y = creature.y
+      let heading = creature.heading
+      let phase = creature.id * 1.7
+      if (prev) {
+        x = lerp(prev.x, creature.x, alpha)
+        y = lerp(prev.y, creature.y, alpha)
+        heading = lerpAngle(prev.heading, creature.heading, alpha)
+        phase = prev.phase
+      }
+      drawOrganism(this.ctx, creature, timeSec, viewScale, x, y, heading, phase)
     }
     effects?.draw(this.ctx)
 
@@ -104,6 +133,48 @@ export class Renderer {
     this.ctx.restore()
 
     this.environment.drawVignette(this.ctx, w, h)
+  }
+
+  private refreshInterpolationSnapshot(sim: Simulation, frameDt: number): void {
+    const tick = sim.world.tick
+    if (tick !== this.lastInterpTick) {
+      this.lastInterpTick = tick
+      for (const creature of sim.world.creatures) {
+        let entry = this.prevById.get(creature.id)
+        if (!entry) {
+          entry = {
+            x: creature.x,
+            y: creature.y,
+            heading: creature.heading,
+            phase: creature.id * 1.7,
+            seenTick: tick,
+          }
+          this.prevById.set(creature.id, entry)
+        } else {
+          entry.x = creature.x
+          entry.y = creature.y
+          entry.heading = creature.heading
+          entry.seenTick = tick
+        }
+      }
+      for (const [id, entry] of this.prevById) {
+        if (entry.seenTick !== tick) {
+          this.prevById.delete(id)
+        }
+      }
+    }
+
+    const speedPhaseAdvance = frameDt
+    for (const creature of sim.world.creatures) {
+      const entry = this.prevById.get(creature.id)
+      if (!entry) continue
+      const speedNorm = clamp(
+        Math.hypot(creature.vx, creature.vy) / (creature.genome.maxSpeed * 45),
+        0,
+        1,
+      )
+      entry.phase += speedPhaseAdvance * (3.5 + creature.genome.metabolism * 3 + speedNorm * 4.5)
+    }
   }
 
   private drawSelection(creature: Creature, scale: number, timeSec: number): void {

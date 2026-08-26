@@ -5,7 +5,8 @@ import { paletteHue } from './palette'
 import { morphologyFor } from './morphology'
 import { drawBloom } from './bloom'
 import { creatureCapacity } from '../sim/world'
-import { TAU, clamp } from '../utils/math'
+import { SPEED_SCALE } from '../sim/config'
+import { TAU, clamp, smoothstep } from '../utils/math'
 
 export interface OrganismShape {
   radiusX: number
@@ -33,6 +34,10 @@ export function drawOrganism(
   creature: Creature,
   timeSec: number,
   viewScale: number,
+  drawX: number = creature.x,
+  drawY: number = creature.y,
+  drawHeading: number = creature.heading,
+  wavePhase: number = timeSec * (5 + creature.genome.metabolism * 4) + creature.id * 1.7,
 ): void {
   const g = creature.genome
   const shape = organismShape(g)
@@ -43,22 +48,22 @@ export function drawOrganism(
   const alpha = 0.5 + 0.45 * energyFrac
 
   if (ry * viewScale < LOD_SCREEN_RADIUS_PX) {
-    drawBloom(ctx, hue, creature.x, creature.y, Math.max(rx, ry) * 1.7, alpha * 0.85)
+    drawBloom(ctx, hue, drawX, drawY, Math.max(rx, ry) * 1.7, alpha * 0.85)
     ctx.fillStyle = `hsla(${hue}, 90%, 82%, ${alpha})`
     ctx.beginPath()
-    ctx.arc(creature.x, creature.y, ry * 0.55, 0, TAU)
+    ctx.arc(drawX, drawY, ry * 0.55, 0, TAU)
     ctx.fill()
     return
   }
 
-  const phase = creature.id * 1.7
-  const moving = creature.vx * creature.vx + creature.vy * creature.vy > 4
-  const wavePhase = timeSec * (5 + g.metabolism * 4) + phase
+  const speedNorm = clamp(Math.hypot(creature.vx, creature.vy) / (g.maxSpeed * SPEED_SCALE), 0, 1)
+  const idleBob = (1 - smoothstep(speedNorm)) * Math.sin(wavePhase * 0.33 + creature.id) * ry * 0.08
   const morph = morphologyFor(creature.id, g)
 
   ctx.save()
-  ctx.translate(creature.x, creature.y)
-  ctx.rotate(creature.heading)
+  ctx.translate(drawX, drawY)
+  ctx.rotate(drawHeading)
+  ctx.translate(0, idleBob)
 
   drawBloom(ctx, hue, 0, 0, Math.max(rx, ry) * 2.3, alpha * 0.7)
 
@@ -123,7 +128,7 @@ export function drawOrganism(
   ctx.restore()
 
   function drawTail(): void {
-    const amp = shape.tailAmplitude * (moving ? 1 : 0.35)
+    const amp = shape.tailAmplitude * (0.25 + 0.75 * smoothstep(speedNorm))
     ctx.strokeStyle = `hsla(${hue}, 90%, 68%, ${alpha * 0.65})`
     ctx.lineWidth = Math.max(ry * 0.22, 0.7)
     ctx.lineCap = 'round'

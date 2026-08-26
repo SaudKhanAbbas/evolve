@@ -10,6 +10,7 @@ import type { Playback } from './ui/controls'
 import { selection } from './ui/selection'
 import { Inspector } from './ui/inspector'
 import { Hud } from './ui/hud'
+import { clamp } from './utils/math'
 
 function seedFromUrl(): number {
   const raw = Number(new URLSearchParams(window.location.search).get('seed'))
@@ -98,8 +99,9 @@ function frame(now: number): void {
   if (steps === MAX_STEPS_PER_FRAME) {
     accumulator = 0
   }
+  const interpAlpha = clamp(accumulator / STEP, 0, 1)
 
-  renderer.draw(simulation, camera, effects, selection.creatureId)
+  renderer.draw(simulation, camera, effects, selection.creatureId, interpAlpha)
 
   if (hud) {
     hud.maybeSample(simulation)
