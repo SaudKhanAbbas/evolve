@@ -7,6 +7,7 @@ import type { Simulation } from '../sim/simulation'
 import type { Camera } from './camera'
 import { drawOrganism } from './creatureArtist'
 import { paletteHue } from './palette'
+import { drawBloom } from './bloom'
 import { Environment } from './environment'
 import type { EffectSystem } from './effects'
 import { TAU, clamp, lerp, lerpAngle } from '../utils/math'
@@ -74,6 +75,7 @@ export class Renderer {
     effects?: EffectSystem,
     selectedId?: number | null,
     interpAlpha = 0,
+    hoverId?: number | null,
   ): void {
     const { w, h } = this.cssSize()
     if (w === 0 || h === 0) return
@@ -110,6 +112,14 @@ export class Renderer {
     for (const food of sim.world.food) {
       this.drawFood(food, timeSec)
     }
+
+    if (hoverId != null && hoverId !== selectedId) {
+      const hovered = sim.world.creatures.find((c) => c.id === hoverId)
+      if (hovered) {
+        this.drawHoverHalo(hovered)
+      }
+    }
+
     for (const creature of sim.world.creatures) {
       const prev = this.prevById.get(creature.id)
       let x = creature.x
@@ -189,28 +199,37 @@ export class Renderer {
     }
   }
 
+  private drawHoverHalo(creature: Creature): void {
+    const g = creature.genome
+    const hue = paletteHue(g.hue, g.diet)
+    drawBloom(this.ctx, hue, creature.x, creature.y, creatureRadius(g.size) * 2.6, 0.28)
+  }
+
   private drawSelection(creature: Creature, scale: number, timeSec: number): void {
     const g = creature.genome
     const radius = creatureRadius(g.size)
     const hue = paletteHue(g.hue, g.diet)
 
-    this.ctx.strokeStyle = `hsla(${hue}, 100%, 85%, 0.25)`
-    this.ctx.lineWidth = 1 / Math.max(scale, 1e-6)
-    this.ctx.beginPath()
-    this.ctx.arc(creature.x, creature.y, g.senseRadius, 0, Math.PI * 2)
-    this.ctx.stroke()
+    const senseAlpha = clamp((scale - 0.55) / 1.1, 0, 1) * 0.3
+    if (senseAlpha > 0.01) {
+      this.ctx.strokeStyle = `hsla(${hue}, 100%, 85%, ${senseAlpha})`
+      this.ctx.lineWidth = 1 / Math.max(scale, 1e-6)
+      this.ctx.beginPath()
+      this.ctx.arc(creature.x, creature.y, g.senseRadius, 0, Math.PI * 2)
+      this.ctx.stroke()
+    }
 
     this.ctx.strokeStyle = `hsla(${hue}, 90%, 88%, 0.95)`
-    this.ctx.lineWidth = 2 / Math.max(scale, 1e-6)
-    const spin = (timeSec * 0.8) % (Math.PI * 2)
+    this.ctx.lineWidth = 1.4 / Math.max(scale, 1e-6)
+    const spin = (timeSec * 0.5) % (Math.PI * 2)
     for (let arc = 0; arc < 4; arc++) {
       this.ctx.beginPath()
       this.ctx.arc(
         creature.x,
         creature.y,
-        radius + 6,
-        spin + (arc * Math.PI) / 2 + 0.25,
-        spin + (arc * Math.PI) / 2 + Math.PI / 2 - 0.25,
+        radius + 7,
+        spin + (arc * Math.PI) / 2 + 0.28,
+        spin + (arc * Math.PI) / 2 + Math.PI / 2 - 0.28,
       )
       this.ctx.stroke()
     }

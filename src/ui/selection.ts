@@ -1,1 +1,4 @@
-export const selection = { creatureId: null as number | null }
+export const selection = {
+  creatureId: null as number | null,
+  hoverId: null as number | null,
+}

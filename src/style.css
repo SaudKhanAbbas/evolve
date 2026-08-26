@@ -183,6 +183,48 @@ body {
   cursor: grabbing;
 }
 
+/* ---------- first-run hint ---------- */
+
+#hint-overlay {
+  position: absolute;
+  top: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 18px;
+  border-radius: 999px;
+  background: rgba(2, 8, 18, 0.5);
+  border: 1px solid rgba(45, 212, 191, 0.16);
+  color: #7fd4c7;
+  font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  pointer-events: none;
+  opacity: 0.92;
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s ease;
+}
+
+#hint-overlay.hidden {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-6px);
+}
+
+.hint-item {
+  white-space: nowrap;
+}
+
+.hint-sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgba(45, 212, 191, 0.5);
+}
+
 /* ---------- playback controls (float over viewport bottom) ---------- */
 
 #controls {

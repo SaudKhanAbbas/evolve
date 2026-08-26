@@ -1,8 +1,10 @@
 export interface InputActions {
   onSelect?: (worldX: number, worldY: number) => void
+  onHover?: (worldX: number | null, worldY: number | null) => void
 }
 
 const DRAG_THRESHOLD_PX = 4
+const HOVER_INTERVAL_MS = 60
 
 interface LocalPoint {
   x: number
@@ -25,6 +27,7 @@ export function attachInput(
   let pointerDown = false
   let lastX = 0
   let lastY = 0
+  let lastHoverTime = 0
 
   function toLocal(event: PointerEvent | WheelEvent): LocalPoint {
     const rect = canvas.getBoundingClientRect()
@@ -47,8 +50,16 @@ export function attachInput(
   }
 
   function onPointerMove(event: PointerEvent): void {
-    if (!pointerDown) return
     const p = toLocal(event)
+    if (actions.onHover && !pointerDown) {
+      const now = performance.now()
+      if (now - lastHoverTime >= HOVER_INTERVAL_MS) {
+        lastHoverTime = now
+        const world = camera.screenToWorld(p.x, p.y, p.vw, p.vh)
+        actions.onHover(world.x, world.y)
+      }
+    }
+    if (!pointerDown) return
     const dx = p.x - lastX
     const dy = p.y - lastY
     if (!dragging && Math.hypot(dx, dy) > DRAG_THRESHOLD_PX) dragging = true
@@ -78,15 +89,23 @@ export function attachInput(
     camera.zoomAt(p.x, p.y, factor, p.vw, p.vh)
   }
 
+  function onPointerLeave(): void {
+    if (!pointerDown && actions.onHover) {
+      actions.onHover(null, null)
+    }
+  }
+
   canvas.addEventListener('pointerdown', onPointerDown)
   canvas.addEventListener('pointermove', onPointerMove)
   canvas.addEventListener('pointerup', onPointerUp)
+  canvas.addEventListener('pointerleave', onPointerLeave)
   canvas.addEventListener('wheel', onWheel, { passive: false })
 
   return () => {
     canvas.removeEventListener('pointerdown', onPointerDown)
     canvas.removeEventListener('pointermove', onPointerMove)
     canvas.removeEventListener('pointerup', onPointerUp)
+    canvas.removeEventListener('pointerleave', onPointerLeave)
     canvas.removeEventListener('wheel', onWheel)
   }
 }

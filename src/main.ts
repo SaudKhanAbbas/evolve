@@ -41,24 +41,56 @@ if (!inspectorRoot) {
 }
 const inspector = new Inspector(inspectorRoot)
 
+function pickCreature(
+  worldX: number,
+  worldY: number,
+): (typeof simulation.world.creatures)[number] | null {
+  let best: (typeof simulation.world.creatures)[number] | null = null
+  let bestDistSq = Number.POSITIVE_INFINITY
+  for (const creature of simulation.world.creatures) {
+    const dx = creature.x - worldX
+    const dy = creature.y - worldY
+    const pickRadius = 3 + creature.genome.size * 2.5 + 8
+    const d = dx * dx + dy * dy
+    if (d <= pickRadius * pickRadius && d < bestDistSq) {
+      bestDistSq = d
+      best = creature
+    }
+  }
+  return best
+}
+
 attachInput(canvas, camera, {
   onSelect: (worldX, worldY) => {
-    let best: (typeof simulation.world.creatures)[number] | null = null
-    let bestDistSq = Number.POSITIVE_INFINITY
-    for (const creature of simulation.world.creatures) {
-      const dx = creature.x - worldX
-      const dy = creature.y - worldY
-      const pickRadius = 3 + creature.genome.size * 2.5 + 8
-      const d = dx * dx + dy * dy
-      if (d <= pickRadius * pickRadius && d < bestDistSq) {
-        bestDistSq = d
-        best = creature
-      }
-    }
+    dismissHint()
+    const best = pickCreature(worldX, worldY)
     selection.creatureId = best ? best.id : null
-    if (!best) inspector.hide()
+    if (!best) inspector.showPlaceholder()
+  },
+  onHover: (worldX, worldY) => {
+    if (worldX === null || worldY === null) {
+      selection.hoverId = null
+      canvas.style.cursor = ''
+      return
+    }
+    const best = pickCreature(worldX, worldY)
+    selection.hoverId = best ? best.id : null
+    canvas.style.cursor = best ? 'pointer' : ''
   },
 })
+
+const hintOverlay = document.querySelector<HTMLElement>('#hint-overlay')
+let hintDismissed = false
+function dismissHint(): void {
+  if (!hintDismissed) {
+    hintDismissed = true
+    hintOverlay?.classList.add('hidden')
+  }
+}
+if (hintOverlay) {
+  window.setTimeout(dismissHint, 8000)
+  canvas.addEventListener('wheel', dismissHint, { once: true, passive: true })
+}
 
 const controlsRoot = document.querySelector<HTMLDivElement>('#controls')
 if (!controlsRoot) {
@@ -102,7 +134,14 @@ function frame(now: number): void {
   }
   const interpAlpha = clamp(accumulator / STEP, 0, 1)
 
-  renderer.draw(simulation, camera.actual, effects, selection.creatureId, interpAlpha)
+  renderer.draw(
+    simulation,
+    camera.actual,
+    effects,
+    selection.creatureId,
+    interpAlpha,
+    selection.hoverId,
+  )
 
   if (hud) {
     hud.maybeSample(simulation)
