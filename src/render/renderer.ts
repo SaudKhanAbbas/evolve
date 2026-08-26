@@ -277,19 +277,19 @@ export class Renderer {
     const alpha = 0.58 + pulse * 0.16
 
     if (radius * viewScale < 1.4) {
-      this.ctx.fillStyle = `rgba(150, 255, 236, ${alpha})`
+      this.ctx.fillStyle = `rgba(150, 255, 236, ${alpha * 0.85})`
       this.ctx.beginPath()
       this.ctx.arc(food.x, food.y, radius, 0, Math.PI * 2)
       this.ctx.fill()
       return
     }
 
-    this.ctx.fillStyle = `rgba(94, 234, 212, ${alpha * 0.28})`
+    this.ctx.fillStyle = `rgba(94, 234, 212, ${alpha * 0.16})`
     this.ctx.beginPath()
-    this.ctx.arc(food.x, food.y, radius * 2.1, 0, Math.PI * 2)
+    this.ctx.arc(food.x, food.y, radius * 1.9, 0, Math.PI * 2)
     this.ctx.fill()
 
-    this.ctx.fillStyle = `rgba(150, 255, 236, ${alpha})`
+    this.ctx.fillStyle = `rgba(150, 255, 236, ${alpha * 0.85})`
     this.ctx.beginPath()
     this.ctx.arc(food.x, food.y, radius, 0, Math.PI * 2)
     this.ctx.fill()
