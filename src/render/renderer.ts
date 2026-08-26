@@ -1,10 +1,9 @@
 import { config } from '../core/config'
 import { WORLD_HEIGHT, WORLD_WIDTH } from '../sim/config'
+import type { Food } from '../sim/food'
 import type { Simulation } from '../sim/simulation'
 import type { Camera } from './camera'
-import { creatureRadius } from '../sim/creature'
-import type { Creature } from '../sim/creature'
-import type { Food } from '../sim/food'
+import { drawOrganism } from './creatureArtist'
 
 const GLOW_LIMIT = 400
 
@@ -37,6 +36,7 @@ export class Renderer {
   draw(sim: Simulation, camera: Camera): void {
     const w = window.innerWidth
     const h = window.innerHeight
+    const timeSec = performance.now() / 1000
 
     if (
       camera.x !== this.lastCamX ||
@@ -61,7 +61,7 @@ export class Renderer {
     }
     const glow = sim.world.creatures.length <= GLOW_LIMIT
     for (const creature of sim.world.creatures) {
-      this.drawCreature(creature, glow)
+      drawOrganism(this.ctx, creature, timeSec, glow)
     }
 
     this.ctx.restore()
@@ -99,42 +99,5 @@ export class Renderer {
     this.ctx.beginPath()
     this.ctx.arc(food.x, food.y, 2.4, 0, Math.PI * 2)
     this.ctx.fill()
-  }
-
-  private drawCreature(creature: Creature, glow: boolean): void {
-    const g = creature.genome
-    const radius = creatureRadius(g.size)
-    const hue = g.hue
-
-    if (glow) {
-      this.ctx.shadowBlur = 14
-      this.ctx.shadowColor = `hsla(${hue}, 100%, 65%, 0.9)`
-    }
-
-    this.ctx.fillStyle = `hsla(${hue}, 85%, 62%, 0.92)`
-    this.ctx.beginPath()
-    this.ctx.arc(creature.x, creature.y, radius, 0, Math.PI * 2)
-    this.ctx.fill()
-
-    this.ctx.shadowBlur = 0
-
-    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.5)'
-    this.ctx.beginPath()
-    this.ctx.arc(
-      creature.x + Math.cos(creature.heading) * radius * 0.45,
-      creature.y + Math.sin(creature.heading) * radius * 0.45,
-      radius * 0.28,
-      0,
-      Math.PI * 2,
-    )
-    this.ctx.fill()
-
-    if (radius >= 6 && glow) {
-      this.ctx.strokeStyle = `hsla(${hue}, 100%, 80%, 0.35)`
-      this.ctx.lineWidth = 1.2
-      this.ctx.beginPath()
-      this.ctx.arc(creature.x, creature.y, radius + 2.5, 0, Math.PI * 2)
-      this.ctx.stroke()
-    }
   }
 }
