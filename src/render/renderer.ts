@@ -9,8 +9,6 @@ import { drawOrganism } from './creatureArtist'
 import { paletteHue } from './palette'
 import type { EffectSystem } from './effects'
 
-const GLOW_LIMIT = 400
-
 export class Renderer {
   private readonly ctx: CanvasRenderingContext2D
   private readonly canvas: HTMLCanvasElement
@@ -75,21 +73,21 @@ export class Renderer {
 
     this.ctx.save()
     camera.applyTransform(this.ctx, w, h)
-    this.drawWorldBoundary(camera.scale(w, h))
+    const viewScale = camera.scale(w, h)
+    this.drawWorldBoundary(viewScale)
 
     for (const food of sim.world.food) {
       this.drawFood(food)
     }
-    const glow = sim.world.creatures.length <= GLOW_LIMIT
     for (const creature of sim.world.creatures) {
-      drawOrganism(this.ctx, creature, timeSec, glow)
+      drawOrganism(this.ctx, creature, timeSec, viewScale)
     }
     effects?.draw(this.ctx)
 
     if (selectedId != null) {
       const selected = sim.world.creatures.find((c) => c.id === selectedId)
       if (selected) {
-        this.drawSelection(selected, camera.scale(w, h), timeSec)
+        this.drawSelection(selected, viewScale, timeSec)
       }
     }
 
