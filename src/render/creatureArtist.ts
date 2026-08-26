@@ -44,20 +44,13 @@ export function drawOrganism(
     ctx.translate(drawX, drawY)
     ctx.rotate(drawHeading)
     ctx.globalAlpha = alpha
-    ctx.strokeStyle = morph.colors.tail
-    ctx.lineWidth = Math.max(ry * 0.3, 0.5)
-    ctx.lineCap = 'round'
-    ctx.beginPath()
-    ctx.moveTo(-rx * 0.6, 0)
-    ctx.lineTo(-rx * 0.6 - morph.shape.tailLength * 0.7, 0)
-    ctx.stroke()
     ctx.fillStyle = morph.colors.body
     ctx.beginPath()
-    ctx.ellipse(0, 0, rx * 0.9, ry * 0.9, 0, 0, TAU)
+    ctx.ellipse(0, 0, rx * 0.95, ry * 0.85, 0, 0, TAU)
     ctx.fill()
     ctx.fillStyle = `hsla(${hue}, 100%, 88%, 0.85)`
     ctx.beginPath()
-    ctx.arc(rx * 0.3, 0, ry * 0.32, 0, TAU)
+    ctx.arc(rx * 0.32, 0, ry * 0.34, 0, TAU)
     ctx.fill()
     ctx.globalAlpha = 1
     ctx.restore()
