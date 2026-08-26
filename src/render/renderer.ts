@@ -11,6 +11,7 @@ import { drawBloom } from './bloom'
 import { Environment } from './environment'
 import type { EffectSystem } from './effects'
 import { QualityController, detailTier } from './detail'
+import { WakeSystem, wakeEligible, wakeStrength } from './wake'
 import { TAU, clamp, lerp, lerpAngle } from '../utils/math'
 
 interface InterpState {
@@ -29,6 +30,7 @@ export class Renderer {
   private readonly environment = new Environment()
   private readonly quality = new QualityController()
   private readonly prevById = new Map<number, InterpState>()
+  private readonly wakes = new WakeSystem()
   private lastInterpTick = -1
   private lastCamX = Number.NaN
   private lastCamY = Number.NaN
@@ -113,6 +115,7 @@ export class Renderer {
     this.environment.drawBack(this.ctx, camera, timeSec, quality)
     this.environment.drawOutsideDim(this.ctx)
     this.environment.drawBoundary(this.ctx, viewScale)
+    this.wakes.draw(this.ctx)
 
     for (const food of sim.world.food) {
       this.drawFood(food, timeSec, viewScale)
@@ -140,6 +143,23 @@ export class Renderer {
         lean = prev.lean
       }
       const tier = detailTier(creature.genome.size * 2.5 * viewScale, quality)
+      const speedNorm = clamp(
+        Math.hypot(creature.vx, creature.vy) / (creature.genome.maxSpeed * SPEED_SCALE),
+        0,
+        1,
+      )
+      if (wakeEligible(tier, speedNorm, creature.genome.size)) {
+        this.wakes.mark(
+          creature.id,
+          this.lastInterpTick,
+          x,
+          y,
+          paletteHue(creature.genome.hue, creature.genome.diet),
+          creature.genome.size,
+          timeSec,
+          wakeStrength(tier, speedNorm),
+        )
+      }
       drawOrganism(this.ctx, creature, timeSec, tier, x, y, heading, phase, lean)
     }
     effects?.draw(this.ctx)
@@ -188,6 +208,7 @@ export class Renderer {
           this.prevById.delete(id)
         }
       }
+      this.wakes.endTick(tick)
     }
 
     const ease = Math.min(1, frameDt * 12)
