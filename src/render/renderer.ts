@@ -1,5 +1,4 @@
 import { config } from '../core/config'
-import { WORLD_HEIGHT, WORLD_WIDTH } from '../sim/config'
 import { creatureRadius } from '../sim/creature'
 import type { Creature } from '../sim/creature'
 import type { Food } from '../sim/food'
@@ -7,15 +6,19 @@ import type { Simulation } from '../sim/simulation'
 import type { Camera } from './camera'
 import { drawOrganism } from './creatureArtist'
 import { paletteHue } from './palette'
+import { Environment } from './environment'
 import type { EffectSystem } from './effects'
+import { clamp } from '../utils/math'
 
 export class Renderer {
   private readonly ctx: CanvasRenderingContext2D
   private readonly canvas: HTMLCanvasElement
+  private readonly environment = new Environment()
   private lastCamX = Number.NaN
   private lastCamY = Number.NaN
   private lastCamZoom = Number.NaN
   private resizeRetryQueued = false
+  private lastFrameTimeSec = Number.NaN
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
@@ -56,6 +59,11 @@ export class Renderer {
     const { w, h } = this.cssSize()
     if (w === 0 || h === 0) return
     const timeSec = performance.now() / 1000
+    const frameDt = Number.isFinite(this.lastFrameTimeSec)
+      ? clamp(timeSec - this.lastFrameTimeSec, 0, 0.1)
+      : 0
+    this.lastFrameTimeSec = timeSec
+    this.environment.update(frameDt)
 
     if (
       camera.x !== this.lastCamX ||
@@ -74,10 +82,12 @@ export class Renderer {
     this.ctx.save()
     camera.applyTransform(this.ctx, w, h)
     const viewScale = camera.scale(w, h)
-    this.drawWorldBoundary(viewScale)
+    this.environment.drawBack(this.ctx, camera, timeSec)
+    this.environment.drawOutsideDim(this.ctx)
+    this.environment.drawBoundary(this.ctx, viewScale)
 
     for (const food of sim.world.food) {
-      this.drawFood(food)
+      this.drawFood(food, timeSec)
     }
     for (const creature of sim.world.creatures) {
       drawOrganism(this.ctx, creature, timeSec, viewScale)
@@ -92,6 +102,8 @@ export class Renderer {
     }
 
     this.ctx.restore()
+
+    this.environment.drawVignette(this.ctx, w, h)
   }
 
   private drawSelection(creature: Creature, scale: number, timeSec: number): void {
@@ -121,12 +133,6 @@ export class Renderer {
     }
   }
 
-  private drawWorldBoundary(scale: number): void {
-    this.ctx.strokeStyle = 'rgba(45, 212, 191, 0.12)'
-    this.ctx.lineWidth = 1.5 / Math.max(scale, 1e-6)
-    this.ctx.strokeRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT)
-  }
-
   private paintBackdrop(w: number, h: number): void {
     const gradient = this.ctx.createLinearGradient(0, 0, 0, h)
     gradient.addColorStop(0, config.palette.abyssTop)
@@ -148,10 +154,20 @@ export class Renderer {
     this.ctx.fillRect(0, 0, w, h)
   }
 
-  private drawFood(food: Food): void {
-    this.ctx.fillStyle = 'rgba(94, 234, 212, 0.75)'
+  private drawFood(food: Food, timeSec: number): void {
+    const phase = food.id * 0.91
+    const pulse = Math.sin(timeSec * 1.6 + phase)
+    const radius = 2.2 + pulse * 0.45
+    const alpha = 0.58 + pulse * 0.16
+
+    this.ctx.fillStyle = `rgba(94, 234, 212, ${alpha * 0.28})`
     this.ctx.beginPath()
-    this.ctx.arc(food.x, food.y, 2.4, 0, Math.PI * 2)
+    this.ctx.arc(food.x, food.y, radius * 2.1, 0, Math.PI * 2)
+    this.ctx.fill()
+
+    this.ctx.fillStyle = `rgba(150, 255, 236, ${alpha})`
+    this.ctx.beginPath()
+    this.ctx.arc(food.x, food.y, radius, 0, Math.PI * 2)
     this.ctx.fill()
   }
 }
