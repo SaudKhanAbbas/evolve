@@ -77,9 +77,11 @@ export class Environment {
     }
   }
 
-  drawBack(ctx: CanvasRenderingContext2D, camera: Camera, timeSec: number): void {
+  drawBack(ctx: CanvasRenderingContext2D, camera: Camera, timeSec: number, quality = 1): void {
+    const count = Math.max(30, Math.ceil(this.flakes.length * (0.35 + 0.65 * quality)))
     ctx.fillStyle = 'rgba(190, 235, 228, 1)'
-    for (const f of this.flakes) {
+    for (let i = 0; i < count; i++) {
+      const f = this.flakes[i]
       const ex = camera.x + (f.x - camera.x) * f.depth
       const ey =
         camera.y + (f.y - camera.y) * f.depth + Math.sin(timeSec * f.swaySpeed + f.swayPhase) * 7

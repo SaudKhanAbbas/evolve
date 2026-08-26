@@ -6,6 +6,7 @@ import { drawOrganism } from '../render/creatureArtist'
 import { Environment } from '../render/environment'
 import { Camera } from '../render/camera'
 import { EffectSystem } from '../render/effects'
+import { detailTier } from '../render/detail'
 import type { Creature } from './creature'
 
 const BENCH = process.env.EVOLVE_BENCH === '1'
@@ -46,7 +47,7 @@ function makePopulation(count: number): Creature[] {
 function benchDraw(
   label: string,
   count: number,
-  viewScale: number,
+  mode: 'high' | 'auto-fit',
   frames: number,
   log: string[],
 ): void {
@@ -56,8 +57,9 @@ function benchDraw(
   const camera = new Camera()
   const environment = new Environment()
   const effects = new EffectSystem()
+  const viewScale = mode === 'high' ? 4 : 0.55
 
-  drawOrganism(ctx, creatures[0], 1, viewScale)
+  drawOrganism(ctx, creatures[0], 1, 'high')
   environment.drawVignette(ctx, 1280, 800)
 
   const start = performance.now()
@@ -69,7 +71,8 @@ function benchDraw(
     camera.applyTransform(ctx, 1280, 800)
     environment.drawBack(ctx, camera, t)
     for (const c of creatures) {
-      drawOrganism(ctx, c, t, viewScale)
+      const tier = mode === 'high' ? 'high' : detailTier(c.genome.size * 2.5 * viewScale, 1)
+      drawOrganism(ctx, c, t, tier)
     }
     effects.draw(ctx)
     ctx.restore()

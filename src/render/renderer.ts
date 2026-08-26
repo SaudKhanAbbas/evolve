@@ -10,6 +10,7 @@ import { paletteHue } from './palette'
 import { drawBloom } from './bloom'
 import { Environment } from './environment'
 import type { EffectSystem } from './effects'
+import { QualityController, detailTier } from './detail'
 import { TAU, clamp, lerp, lerpAngle } from '../utils/math'
 
 interface InterpState {
@@ -26,6 +27,7 @@ export class Renderer {
   private readonly ctx: CanvasRenderingContext2D
   private readonly canvas: HTMLCanvasElement
   private readonly environment = new Environment()
+  private readonly quality = new QualityController()
   private readonly prevById = new Map<number, InterpState>()
   private lastInterpTick = -1
   private lastCamX = Number.NaN
@@ -76,6 +78,7 @@ export class Renderer {
     selectedId?: number | null,
     interpAlpha = 0,
     hoverId?: number | null,
+    frameMs = 16,
   ): void {
     const { w, h } = this.cssSize()
     if (w === 0 || h === 0) return
@@ -84,6 +87,8 @@ export class Renderer {
       ? clamp(timeSec - this.lastFrameTimeSec, 0, 0.1)
       : 0
     this.lastFrameTimeSec = timeSec
+    this.quality.update(frameMs, frameDt)
+    const quality = this.quality.quality
     this.environment.update(frameDt)
     const alpha = clamp(interpAlpha, 0, 1)
     this.refreshInterpolationSnapshot(sim, frameDt)
@@ -105,12 +110,12 @@ export class Renderer {
     this.ctx.save()
     camera.applyTransform(this.ctx, w, h)
     const viewScale = camera.scale(w, h)
-    this.environment.drawBack(this.ctx, camera, timeSec)
+    this.environment.drawBack(this.ctx, camera, timeSec, quality)
     this.environment.drawOutsideDim(this.ctx)
     this.environment.drawBoundary(this.ctx, viewScale)
 
     for (const food of sim.world.food) {
-      this.drawFood(food, timeSec)
+      this.drawFood(food, timeSec, viewScale)
     }
 
     if (hoverId != null && hoverId !== selectedId) {
@@ -134,7 +139,8 @@ export class Renderer {
         phase = prev.phase
         lean = prev.lean
       }
-      drawOrganism(this.ctx, creature, timeSec, viewScale, x, y, heading, phase, lean)
+      const tier = detailTier(creature.genome.size * 2.5 * viewScale, quality)
+      drawOrganism(this.ctx, creature, timeSec, tier, x, y, heading, phase, lean)
     }
     effects?.draw(this.ctx)
 
@@ -256,11 +262,19 @@ export class Renderer {
     this.ctx.fillRect(0, 0, w, h)
   }
 
-  private drawFood(food: Food, timeSec: number): void {
+  private drawFood(food: Food, timeSec: number, viewScale: number): void {
     const phase = food.id * 0.91
     const pulse = Math.sin(timeSec * 1.6 + phase)
     const radius = 2.2 + pulse * 0.45
     const alpha = 0.58 + pulse * 0.16
+
+    if (radius * viewScale < 1.4) {
+      this.ctx.fillStyle = `rgba(150, 255, 236, ${alpha})`
+      this.ctx.beginPath()
+      this.ctx.arc(food.x, food.y, radius, 0, Math.PI * 2)
+      this.ctx.fill()
+      return
+    }
 
     this.ctx.fillStyle = `rgba(94, 234, 212, ${alpha * 0.28})`
     this.ctx.beginPath()

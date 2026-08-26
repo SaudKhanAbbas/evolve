@@ -115,6 +115,7 @@ let accumulator = 0
 let framesUntilHud = 0
 
 function frame(now: number): void {
+  const frameStart = performance.now()
   const elapsed = Math.min((now - last) / 1000, 0.1)
   last = now
   camera.update(elapsed, window.innerWidth, window.innerHeight)
@@ -141,6 +142,7 @@ function frame(now: number): void {
     selection.creatureId,
     interpAlpha,
     selection.hoverId,
+    performance.now() - frameStart,
   )
 
   if (hud) {
