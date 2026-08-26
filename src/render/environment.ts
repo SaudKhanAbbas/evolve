@@ -146,17 +146,15 @@ export class Environment {
       const cctx = canvas.getContext('2d')
       if (!cctx) return
       const gradient = cctx.createRadialGradient(128, 128, 0, 128, 128, 128)
-      gradient.addColorStop(0, 'rgba(64, 160, 170, 0.16)')
-      gradient.addColorStop(0.55, 'rgba(40, 120, 150, 0.07)')
-      gradient.addColorStop(1, 'rgba(20, 60, 90, 0)')
+      gradient.addColorStop(0, 'rgba(52, 120, 132, 0.085)')
+      gradient.addColorStop(0.55, 'rgba(34, 92, 116, 0.04)')
+      gradient.addColorStop(1, 'rgba(16, 44, 70, 0)')
       cctx.fillStyle = gradient
       cctx.fillRect(0, 0, 256, 256)
       this.currentSprite = canvas
     }
 
     const depth = 0.3
-    ctx.save()
-    ctx.globalCompositeOperation = 'lighter'
     for (let i = 0; i < this.currents.length; i++) {
       const c = this.currents[i]
       const wx = c.x + Math.sin(timeSec * c.speed + c.phase) * 90
@@ -164,10 +162,10 @@ export class Environment {
       const ex = camera.x + (wx - camera.x) * depth
       const ey = camera.y + (wy - camera.y) * depth
       const size = c.scale * (1 + 0.08 * Math.sin(timeSec * 0.11 + c.phase))
-      ctx.globalAlpha = 0.5
+      ctx.globalAlpha = 0.34
       ctx.drawImage(this.currentSprite, ex - size / 2, ey - size / 2, size, size)
     }
-    ctx.restore()
+    ctx.globalAlpha = 1
   }
 
   drawOutsideDim(ctx: CanvasRenderingContext2D): void {

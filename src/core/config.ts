@@ -6,6 +6,5 @@ export const config = {
   palette: {
     abyssTop: '#04121f',
     abyssBottom: '#010409',
-    glow: 'rgba(45, 212, 191, 0.08)',
   },
 } as const

@@ -268,19 +268,6 @@ export class Renderer {
     gradient.addColorStop(1, config.palette.abyssBottom)
     this.ctx.fillStyle = gradient
     this.ctx.fillRect(0, 0, w, h)
-
-    const glow = this.ctx.createRadialGradient(
-      w / 2,
-      h * 0.85,
-      0,
-      w / 2,
-      h * 0.85,
-      Math.max(w, h) * 0.6,
-    )
-    glow.addColorStop(0, config.palette.glow)
-    glow.addColorStop(1, 'transparent')
-    this.ctx.fillStyle = glow
-    this.ctx.fillRect(0, 0, w, h)
   }
 
   private drawFood(food: Food, timeSec: number, viewScale: number): void {
