@@ -5,6 +5,8 @@ import { Renderer } from './render/renderer'
 import { Camera } from './render/camera'
 import { EffectSystem } from './render/effects'
 import { attachInput } from './ui/input'
+import { createControls } from './ui/controls'
+import type { Playback } from './ui/controls'
 
 function seedFromUrl(): number {
   const raw = Number(new URLSearchParams(window.location.search).get('seed'))
@@ -24,9 +26,17 @@ const camera = new Camera()
 
 attachInput(canvas, camera, {})
 
+const controlsRoot = document.querySelector<HTMLDivElement>('#controls')
+if (!controlsRoot) {
+  throw new Error('EVOLVE: #controls element not found')
+}
+const playback: Playback = { paused: false, speed: 1 }
+createControls(controlsRoot, playback)
+
 window.addEventListener('resize', () => renderer.resize())
 
 const STEP = 1 / TICK_RATE
+const MAX_STEPS_PER_FRAME = 600
 let last = performance.now()
 let accumulator = 0
 let framesUntilHud = 0
@@ -34,12 +44,19 @@ let framesUntilHud = 0
 function frame(now: number): void {
   const elapsed = Math.min((now - last) / 1000, 0.1)
   last = now
-  accumulator += elapsed
+  if (!playback.paused) {
+    accumulator += elapsed * playback.speed
+  }
   effects.update(elapsed)
 
-  while (accumulator >= STEP) {
+  let steps = 0
+  while (accumulator >= STEP && steps < MAX_STEPS_PER_FRAME) {
     simulation.step()
     accumulator -= STEP
+    steps++
+  }
+  if (steps === MAX_STEPS_PER_FRAME) {
+    accumulator = 0
   }
 
   renderer.draw(simulation, camera, effects)
