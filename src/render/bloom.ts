@@ -1,21 +1,19 @@
 import { clamp } from '../utils/math'
 
 const HUE_BUCKETS = 24
-const CURATED_HUE_MIN = 160
-const CURATED_HUE_MAX = 310
 const SPRITE_SIZE = 128
 
 const sprites: HTMLCanvasElement[] = []
 let initialized = false
 
 export function bloomBucket(hue: number): number {
-  const t = clamp((hue - CURATED_HUE_MIN) / (CURATED_HUE_MAX - CURATED_HUE_MIN), 0, 1)
-  return Math.min(HUE_BUCKETS - 1, Math.floor(t * HUE_BUCKETS))
+  const norm = ((hue % 360) + 360) % 360
+  return Math.min(HUE_BUCKETS - 1, Math.floor((norm / 360) * HUE_BUCKETS))
 }
 
 function buildSprites(): void {
   for (let i = 0; i < HUE_BUCKETS; i++) {
-    const hue = CURATED_HUE_MIN + ((CURATED_HUE_MAX - CURATED_HUE_MIN) * i) / (HUE_BUCKETS - 1)
+    const hue = (360 * i) / (HUE_BUCKETS - 1)
     const canvas = document.createElement('canvas')
     canvas.width = SPRITE_SIZE
     canvas.height = SPRITE_SIZE

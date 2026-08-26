@@ -1,12 +1,17 @@
-import { clamp, lerp } from '../utils/math'
-
-const HUE_FLOOR = 172
-const HUE_BAND_SHIFT = 78
-const HUE_SPAN = 52
+const WARM_CUTOFF = 0.94
+const COOL_START = 148
+const COOL_SPAN = 174
+const WARM_START = 14
+const WARM_SPAN = 44
+const DIET_SHIFT = 16
 
 export function paletteHue(geneHue: number, diet: number): number {
-  const genePos = (((geneHue % 360) + 360) % 360) / 360
-  const dietNorm = clamp((diet + 1) / 2, 0, 1)
-  const bandStart = lerp(HUE_FLOOR, HUE_FLOOR + HUE_BAND_SHIFT, dietNorm)
-  return bandStart + genePos * HUE_SPAN
+  const pos = (((geneHue % 360) + 360) % 360) / 360
+  let hue: number
+  if (pos >= WARM_CUTOFF) {
+    hue = WARM_START + ((pos - WARM_CUTOFF) / (1 - WARM_CUTOFF)) * WARM_SPAN
+  } else {
+    hue = COOL_START + (pos / WARM_CUTOFF) * COOL_SPAN
+  }
+  return hue + diet * DIET_SHIFT
 }
