@@ -12,7 +12,17 @@
   <body>
     <canvas id="app"></canvas>
 
-    <div id="hud" aria-live="off"></div>
+    <div id="hud-panel">
+      <div id="hud" aria-live="off"></div>
+      <div class="chart-block">
+        <div class="chart-label">POPULATION</div>
+        <canvas id="chart-pop"></canvas>
+      </div>
+      <div class="chart-block">
+        <div class="chart-label">AVG SPEED GENE</div>
+        <canvas id="chart-speed"></canvas>
+      </div>
+    </div>
 
     <div id="controls">
       <button id="play-pause" class="ctrl-btn primary" title="Toggle pause (Space)">PAUSE</button>

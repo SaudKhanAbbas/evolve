@@ -9,6 +9,7 @@ import { createControls } from './ui/controls'
 import type { Playback } from './ui/controls'
 import { selection } from './ui/selection'
 import { Inspector } from './ui/inspector'
+import { Hud } from './ui/hud'
 
 function seedFromUrl(): number {
   const raw = Number(new URLSearchParams(window.location.search).get('seed'))
@@ -19,12 +20,19 @@ const canvas = document.querySelector<HTMLCanvasElement>('#app')
 if (!canvas) {
   throw new Error('EVOLVE: #app canvas element not found')
 }
-const hud = document.querySelector<HTMLDivElement>('#hud')
+const hudText = document.querySelector<HTMLDivElement>('#hud')
+const popCanvas = document.querySelector<HTMLCanvasElement>('#chart-pop')
+const speedCanvas = document.querySelector<HTMLCanvasElement>('#chart-speed')
 
 const effects = new EffectSystem()
 const simulation = new Simulation(seedFromUrl(), true, (e) => effects.handleEvent(e))
 const renderer = new Renderer(canvas)
 const camera = new Camera()
+
+let hud: Hud | null = null
+if (hudText && popCanvas && speedCanvas) {
+  hud = new Hud(hudText, popCanvas, speedCanvas)
+}
 
 const inspectorRoot = document.querySelector<HTMLElement>('#inspector')
 if (!inspectorRoot) {
@@ -93,24 +101,20 @@ function frame(now: number): void {
 
   renderer.draw(simulation, camera, effects, selection.creatureId)
 
-  if (hud && ++framesUntilHud >= 10) {
-    framesUntilHud = 0
-    const creatures = simulation.world.creatures
-    const maxGen = creatures.reduce((m, c) => Math.max(m, c.generation), 0)
-    hud.textContent =
-      `POPULATION  ${String(creatures.length).padStart(4)}\n` +
-      `GENERATION  ${String(maxGen).padStart(4)}\n` +
-      `TIME        ${simulation.time.toFixed(1)}s\n` +
-      `SPEED       ${playback.speed}x${playback.paused ? ' (PAUSED)' : ''}\n` +
-      `SEED        ${simulation.seed}`
+  if (hud) {
+    hud.maybeSample(simulation)
+    if (++framesUntilHud >= 10) {
+      framesUntilHud = 0
+      hud.render(simulation, playback)
 
-    if (selection.creatureId != null) {
-      const selected = creatures.find((c) => c.id === selection.creatureId)
-      if (selected) {
-        inspector.show(selected)
-      } else {
-        selection.creatureId = null
-        inspector.hide()
+      if (selection.creatureId != null) {
+        const selected = simulation.world.creatures.find((c) => c.id === selection.creatureId)
+        if (selected) {
+          inspector.show(selected)
+        } else {
+          selection.creatureId = null
+          inspector.hide()
+        }
       }
     }
   }
