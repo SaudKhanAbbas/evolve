@@ -7,6 +7,8 @@ import { EffectSystem } from './render/effects'
 import { attachInput } from './ui/input'
 import { createControls } from './ui/controls'
 import type { Playback } from './ui/controls'
+import { selection } from './ui/selection'
+import { Inspector } from './ui/inspector'
 
 function seedFromUrl(): number {
   const raw = Number(new URLSearchParams(window.location.search).get('seed'))
@@ -24,7 +26,30 @@ const simulation = new Simulation(seedFromUrl(), true, (e) => effects.handleEven
 const renderer = new Renderer(canvas)
 const camera = new Camera()
 
-attachInput(canvas, camera, {})
+const inspectorRoot = document.querySelector<HTMLElement>('#inspector')
+if (!inspectorRoot) {
+  throw new Error('EVOLVE: #inspector element not found')
+}
+const inspector = new Inspector(inspectorRoot)
+
+attachInput(canvas, camera, {
+  onSelect: (worldX, worldY) => {
+    let best: (typeof simulation.world.creatures)[number] | null = null
+    let bestDistSq = Number.POSITIVE_INFINITY
+    for (const creature of simulation.world.creatures) {
+      const dx = creature.x - worldX
+      const dy = creature.y - worldY
+      const pickRadius = 3 + creature.genome.size * 2.5 + 8
+      const d = dx * dx + dy * dy
+      if (d <= pickRadius * pickRadius && d < bestDistSq) {
+        bestDistSq = d
+        best = creature
+      }
+    }
+    selection.creatureId = best ? best.id : null
+    if (!best) inspector.hide()
+  },
+})
 
 const controlsRoot = document.querySelector<HTMLDivElement>('#controls')
 if (!controlsRoot) {
@@ -32,6 +57,13 @@ if (!controlsRoot) {
 }
 const playback: Playback = { paused: false, speed: 1 }
 createControls(controlsRoot, playback)
+
+window.addEventListener('keydown', (event: KeyboardEvent) => {
+  if (event.code === 'Escape') {
+    selection.creatureId = null
+    inspector.hide()
+  }
+})
 
 window.addEventListener('resize', () => renderer.resize())
 
@@ -59,7 +91,7 @@ function frame(now: number): void {
     accumulator = 0
   }
 
-  renderer.draw(simulation, camera, effects)
+  renderer.draw(simulation, camera, effects, selection.creatureId)
 
   if (hud && ++framesUntilHud >= 10) {
     framesUntilHud = 0
@@ -69,7 +101,18 @@ function frame(now: number): void {
       `POPULATION  ${String(creatures.length).padStart(4)}\n` +
       `GENERATION  ${String(maxGen).padStart(4)}\n` +
       `TIME        ${simulation.time.toFixed(1)}s\n` +
+      `SPEED       ${playback.speed}x${playback.paused ? ' (PAUSED)' : ''}\n` +
       `SEED        ${simulation.seed}`
+
+    if (selection.creatureId != null) {
+      const selected = creatures.find((c) => c.id === selection.creatureId)
+      if (selected) {
+        inspector.show(selected)
+      } else {
+        selection.creatureId = null
+        inspector.hide()
+      }
+    }
   }
 
   requestAnimationFrame(frame)

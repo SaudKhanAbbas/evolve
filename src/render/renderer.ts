@@ -1,5 +1,7 @@
 import { config } from '../core/config'
 import { WORLD_HEIGHT, WORLD_WIDTH } from '../sim/config'
+import { creatureRadius } from '../sim/creature'
+import type { Creature } from '../sim/creature'
 import type { Food } from '../sim/food'
 import type { Simulation } from '../sim/simulation'
 import type { Camera } from './camera'
@@ -34,7 +36,7 @@ export class Renderer {
     this.paintBackdrop(window.innerWidth, window.innerHeight)
   }
 
-  draw(sim: Simulation, camera: Camera, effects?: EffectSystem): void {
+  draw(sim: Simulation, camera: Camera, effects?: EffectSystem, selectedId?: number | null): void {
     const w = window.innerWidth
     const h = window.innerHeight
     const timeSec = performance.now() / 1000
@@ -66,7 +68,40 @@ export class Renderer {
     }
     effects?.draw(this.ctx)
 
+    if (selectedId != null) {
+      const selected = sim.world.creatures.find((c) => c.id === selectedId)
+      if (selected) {
+        this.drawSelection(selected, camera.scale(w, h), timeSec)
+      }
+    }
+
     this.ctx.restore()
+  }
+
+  private drawSelection(creature: Creature, scale: number, timeSec: number): void {
+    const g = creature.genome
+    const radius = creatureRadius(g.size)
+
+    this.ctx.strokeStyle = `hsla(${g.hue}, 100%, 85%, 0.25)`
+    this.ctx.lineWidth = 1 / Math.max(scale, 1e-6)
+    this.ctx.beginPath()
+    this.ctx.arc(creature.x, creature.y, g.senseRadius, 0, Math.PI * 2)
+    this.ctx.stroke()
+
+    this.ctx.strokeStyle = 'rgba(220, 255, 250, 0.95)'
+    this.ctx.lineWidth = 2 / Math.max(scale, 1e-6)
+    const spin = (timeSec * 0.8) % (Math.PI * 2)
+    for (let arc = 0; arc < 4; arc++) {
+      this.ctx.beginPath()
+      this.ctx.arc(
+        creature.x,
+        creature.y,
+        radius + 6,
+        spin + (arc * Math.PI) / 2 + 0.25,
+        spin + (arc * Math.PI) / 2 + Math.PI / 2 - 0.25,
+      )
+      this.ctx.stroke()
+    }
   }
 
   private drawWorldBoundary(scale: number): void {

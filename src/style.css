@@ -126,3 +126,60 @@ body {
   border-bottom: 1px solid rgba(45, 212, 191, 0.2);
   padding-bottom: 8px;
 }
+
+#inspector .stat-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+#inspector .trait {
+  margin-top: 9px;
+}
+
+#inspector .trait-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #7fd4c7;
+  margin-bottom: 3px;
+}
+
+#inspector .bar {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(45, 212, 191, 0.12);
+  overflow: hidden;
+}
+
+#inspector .bar .fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, rgba(45, 212, 191, 0.65), rgba(139, 92, 246, 0.75));
+}
+
+#inspector .bar.energy .fill {
+  background: linear-gradient(90deg, rgba(45, 212, 191, 0.8), rgba(94, 234, 212, 0.95));
+}
+
+#inspector .diet-note {
+  margin-top: 10px;
+  font-size: 11px;
+  color: #6db9ae;
+}
+
+#inspector .swatch-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  justify-content: space-between;
+}
+
+#inspector .hue-swatch {
+  display: inline-block;
+  width: 42px;
+  height: 10px;
+  border-radius: 5px;
+  box-shadow: 0 0 8px currentColor;
+}
