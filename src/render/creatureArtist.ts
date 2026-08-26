@@ -1,6 +1,7 @@
 import { creatureRadius } from '../sim/creature'
 import type { Creature } from '../sim/creature'
 import type { Genome } from '../sim/genome'
+import { paletteHue } from './palette'
 import { creatureCapacity } from '../sim/world'
 import { TAU, clamp } from '../utils/math'
 
@@ -33,7 +34,7 @@ export function drawOrganism(
   const g = creature.genome
   const shape = organismShape(g)
   const { radiusX: rx, radiusY: ry } = shape
-  const hue = g.hue
+  const hue = paletteHue(g.hue, g.diet)
   const energyFrac = clamp(creature.energy / creatureCapacity(g), 0, 1)
   const alpha = 0.5 + 0.45 * energyFrac
   const phase = creature.id * 1.7

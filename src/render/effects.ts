@@ -1,4 +1,5 @@
 import type { SimEvent } from '../sim/events'
+import { paletteHue } from './palette'
 
 interface Effect {
   x: number
@@ -25,7 +26,7 @@ export class EffectSystem {
     this.effects.push({
       x: event.x,
       y: event.y,
-      hue: event.hue,
+      hue: paletteHue(event.hue, event.diet),
       size: event.size,
       age: 0,
       maxAge: event.type === 'birth' ? BIRTH_LIFETIME : DEATH_LIFETIME,

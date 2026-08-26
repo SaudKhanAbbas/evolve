@@ -3,7 +3,7 @@ import { EffectSystem } from './effects'
 import type { SimEvent } from '../sim/events'
 
 function event(type: SimEvent['type']): SimEvent {
-  return { type, x: 100, y: 100, hue: 200, size: 1 }
+  return { type, x: 100, y: 100, hue: 200, diet: -0.5, size: 1 }
 }
 
 describe('EffectSystem', () => {

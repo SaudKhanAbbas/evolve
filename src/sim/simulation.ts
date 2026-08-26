@@ -40,8 +40,15 @@ export class Simulation {
     })
   }
 
-  private emit(type: SimEvent['type'], x: number, y: number, hue: number, size: number): void {
-    this.observer?.({ type, x, y, hue, size })
+  private emit(
+    type: SimEvent['type'],
+    x: number,
+    y: number,
+    hue: number,
+    diet: number,
+    size: number,
+  ): void {
+    this.observer?.({ type, x, y, hue, diet, size })
   }
 
   get tick(): number {
@@ -122,7 +129,14 @@ export class Simulation {
 
     if (creature.energy <= 0) {
       creature.alive = false
-      this.emit('death', creature.x, creature.y, creature.genome.hue, creature.genome.size)
+      this.emit(
+        'death',
+        creature.x,
+        creature.y,
+        creature.genome.hue,
+        creature.genome.diet,
+        creature.genome.size,
+      )
       return true
     }
     return false
@@ -144,7 +158,7 @@ export class Simulation {
       if (!canReproduce(creature)) continue
       const child = reproduce(creature, world.nextEntityId++, this.rng)
       births.push(child)
-      this.emit('birth', child.x, child.y, child.genome.hue, child.genome.size)
+      this.emit('birth', child.x, child.y, child.genome.hue, child.genome.diet, child.genome.size)
       if (world.creatures.length + births.length >= MAX_CREATURES) break
     }
     if (births.length > 0) {

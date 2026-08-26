@@ -5,6 +5,7 @@ export interface SimEvent {
   x: number
   y: number
   hue: number
+  diet: number
   size: number
 }
 

@@ -6,6 +6,7 @@ import type { Food } from '../sim/food'
 import type { Simulation } from '../sim/simulation'
 import type { Camera } from './camera'
 import { drawOrganism } from './creatureArtist'
+import { paletteHue } from './palette'
 import type { EffectSystem } from './effects'
 
 const GLOW_LIMIT = 400
@@ -98,14 +99,15 @@ export class Renderer {
   private drawSelection(creature: Creature, scale: number, timeSec: number): void {
     const g = creature.genome
     const radius = creatureRadius(g.size)
+    const hue = paletteHue(g.hue, g.diet)
 
-    this.ctx.strokeStyle = `hsla(${g.hue}, 100%, 85%, 0.25)`
+    this.ctx.strokeStyle = `hsla(${hue}, 100%, 85%, 0.25)`
     this.ctx.lineWidth = 1 / Math.max(scale, 1e-6)
     this.ctx.beginPath()
     this.ctx.arc(creature.x, creature.y, g.senseRadius, 0, Math.PI * 2)
     this.ctx.stroke()
 
-    this.ctx.strokeStyle = 'rgba(220, 255, 250, 0.95)'
+    this.ctx.strokeStyle = `hsla(${hue}, 90%, 88%, 0.95)`
     this.ctx.lineWidth = 2 / Math.max(scale, 1e-6)
     const spin = (timeSec * 0.8) % (Math.PI * 2)
     for (let arc = 0; arc < 4; arc++) {
