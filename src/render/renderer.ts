@@ -17,7 +17,7 @@ export class Renderer {
       throw new Error('EVOLVE: 2D rendering context unavailable')
     }
     this.ctx = ctx
-    this.paintBackdrop(window.innerWidth, window.innerHeight)
+    this.resize()
   }
 
   resize(): void {

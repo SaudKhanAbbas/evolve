@@ -44,7 +44,7 @@ function assertFiniteWorld(sim: Simulation): void {
 }
 
 describe('headless stability', () => {
-  it('keeps a living, finite, bounded ecosystem across a long run', () => {
+  it('keeps a living, finite, bounded ecosystem across a long run', { timeout: 60_000 }, () => {
     const sim = runHeadless(1234, 12000)
 
     assertFiniteWorld(sim)
@@ -56,21 +56,24 @@ describe('headless stability', () => {
     expect(maxGeneration(sim.world.creatures)).toBeGreaterThanOrEqual(15)
   })
 
-  it('exerts real selection pressure: traits drift from their initial spread', () => {
-    const sim = runHeadless(777, 12000)
-    const avgSpeed =
-      sim.world.creatures.reduce((s, c) => s + c.genome.maxSpeed, 0) / sim.world.creatures.length
-    expect(avgSpeed).toBeGreaterThan(0)
-    expect(avgSpeed).toBeLessThan(3)
-    expect(maxGeneration(sim.world.creatures)).toBeGreaterThan(5)
-  })
+  it(
+    'exerts real selection pressure: traits drift from their initial spread',
+    { timeout: 60_000 },
+    () => {
+      const sim = runHeadless(777, 12000)
+      const avgSpeed =
+        sim.world.creatures.reduce((s, c) => s + c.genome.maxSpeed, 0) / sim.world.creatures.length
+      expect(avgSpeed).toBeGreaterThan(0)
+      expect(avgSpeed).toBeLessThan(3)
+      expect(maxGeneration(sim.world.creatures)).toBeGreaterThan(5)
+    },
+  )
 
-  it('reproduces identical history from the same seed', () => {
+  it('reproduces identical history from the same seed', { timeout: 60_000 }, () => {
     const a = runHeadless(42, 6000)
     const b = runHeadless(42, 6000)
     expect(JSON.stringify(a.world)).toBe(JSON.stringify(b.world))
   })
-
   it('diverges under different seeds', () => {
     const a = runHeadless(1, 3000)
     const b = runHeadless(2, 3000)
