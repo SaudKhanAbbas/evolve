@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Environment } from './environment'
+import { CLUSTER_SPREAD, Environment, clusterCenter } from './environment'
 import { WORLD_HEIGHT, WORLD_WIDTH } from '../sim/config'
 
 const PAD = 320
@@ -38,6 +38,23 @@ describe('Environment', () => {
     }
     expect(deep).toBeGreaterThan(20)
     expect(near).toBeGreaterThan(20)
+  })
+
+  it('concentrates a large share of flakes around cluster centers', () => {
+    const env = new Environment()
+    let clustered = 0
+    for (let i = 0; i < env.flakeCount; i++) {
+      const f = env.flakeAt(i)
+      for (let c = 0; c < 7; c++) {
+        const center = clusterCenter(c)
+        if (Math.hypot(f.x - center.x, f.y - center.y) < CLUSTER_SPREAD * 1.15) {
+          clustered++
+          break
+        }
+      }
+    }
+    expect(clustered / env.flakeCount).toBeGreaterThan(0.35)
+    expect(clustered / env.flakeCount).toBeLessThan(0.8)
   })
 
   it('ignores non-positive update deltas', () => {
