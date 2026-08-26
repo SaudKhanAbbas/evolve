@@ -2,7 +2,7 @@ import './style.css'
 import { TICK_RATE } from './sim/config'
 import { Simulation } from './sim/simulation'
 import { Renderer } from './render/renderer'
-import { Camera } from './render/camera'
+import { CameraRig } from './render/cameraRig'
 import { EffectSystem } from './render/effects'
 import { attachInput } from './ui/input'
 import { createControls } from './ui/controls'
@@ -28,7 +28,7 @@ const speedCanvas = document.querySelector<HTMLCanvasElement>('#chart-speed')
 const effects = new EffectSystem()
 const simulation = new Simulation(seedFromUrl(), true, (e) => effects.handleEvent(e))
 const renderer = new Renderer(canvas)
-const camera = new Camera()
+const camera = new CameraRig()
 
 let hud: Hud | null = null
 if (hudText && popCanvas && speedCanvas) {
@@ -85,6 +85,7 @@ let framesUntilHud = 0
 function frame(now: number): void {
   const elapsed = Math.min((now - last) / 1000, 0.1)
   last = now
+  camera.update(elapsed, window.innerWidth, window.innerHeight)
   if (!playback.paused) {
     accumulator += elapsed * playback.speed
   }
@@ -101,7 +102,7 @@ function frame(now: number): void {
   }
   const interpAlpha = clamp(accumulator / STEP, 0, 1)
 
-  renderer.draw(simulation, camera, effects, selection.creatureId, interpAlpha)
+  renderer.draw(simulation, camera.actual, effects, selection.creatureId, interpAlpha)
 
   if (hud) {
     hud.maybeSample(simulation)
