@@ -15,6 +15,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@napi-rs/canvas": "^1.0.8",
     "eslint": "^10.9.1",
     "globals": "^17.11.0",
     "prettier": "^3.9.6",

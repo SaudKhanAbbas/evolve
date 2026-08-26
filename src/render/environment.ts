@@ -29,7 +29,7 @@ function mulberry(seed: number): () => number {
 
 export class Environment {
   private readonly flakes: Snowflake[] = []
-  private vignette: CanvasGradient | null = null
+  private vignetteCanvas: HTMLCanvasElement | null = null
   private vignetteW = 0
   private vignetteH = 0
 
@@ -113,17 +113,23 @@ export class Environment {
   }
 
   drawVignette(ctx: CanvasRenderingContext2D, w: number, h: number): void {
-    if (!this.vignette || this.vignetteW !== w || this.vignetteH !== h) {
+    if (!this.vignetteCanvas || this.vignetteW !== w || this.vignetteH !== h) {
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.max(1, w)
+      canvas.height = Math.max(1, h)
+      const vctx = canvas.getContext('2d')
+      if (!vctx) return
       const radius = Math.hypot(w, h) / 2
-      const gradient = ctx.createRadialGradient(w / 2, h / 2, radius * 0.45, w / 2, h / 2, radius)
+      const gradient = vctx.createRadialGradient(w / 2, h / 2, radius * 0.45, w / 2, h / 2, radius)
       gradient.addColorStop(0, 'rgba(1, 4, 9, 0)')
       gradient.addColorStop(0.75, 'rgba(1, 4, 9, 0.16)')
       gradient.addColorStop(1, 'rgba(0, 2, 6, 0.46)')
-      this.vignette = gradient
+      vctx.fillStyle = gradient
+      vctx.fillRect(0, 0, w, h)
+      this.vignetteCanvas = canvas
       this.vignetteW = w
       this.vignetteH = h
     }
-    ctx.fillStyle = this.vignette
-    ctx.fillRect(0, 0, w, h)
+    ctx.drawImage(this.vignetteCanvas, 0, 0)
   }
 }

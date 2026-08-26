@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { organismShape } from './creatureArtist'
+import { organismShape } from './morphology'
 import type { Genome } from '../sim/genome'
 
 function genome(overrides: Partial<Genome> = {}): Genome {
