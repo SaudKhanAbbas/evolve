@@ -12,6 +12,7 @@ import { Environment } from './environment'
 import type { EffectSystem } from './effects'
 import { QualityController, detailTier } from './detail'
 import { WakeSystem, wakeEligible, wakeStrength } from './wake'
+import { morphologyFor } from './morphology'
 import { TAU, clamp, lerp, lerpAngle } from '../utils/math'
 
 interface InterpState {
@@ -31,6 +32,8 @@ export class Renderer {
   private readonly quality = new QualityController()
   private readonly prevById = new Map<number, InterpState>()
   private readonly wakes = new WakeSystem()
+  private glowCanvas: HTMLCanvasElement | null = null
+  private glowCtx: CanvasRenderingContext2D | null = null
   private lastInterpTick = -1
   private lastCamX = Number.NaN
   private lastCamY = Number.NaN
@@ -70,6 +73,10 @@ export class Renderer {
     this.canvas.height = Math.floor(h * dpr)
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     this.lastCamX = Number.NaN
+    if (this.glowCanvas) {
+      this.glowCanvas.width = this.canvas.width
+      this.glowCanvas.height = this.canvas.height
+    }
     this.paintBackdrop(w, h)
   }
 
@@ -109,6 +116,8 @@ export class Renderer {
       this.ctx.fillRect(0, 0, w, h)
     }
 
+    this.renderGlowLayer(sim, camera, w, h, alpha, hoverId)
+
     this.ctx.save()
     camera.applyTransform(this.ctx, w, h)
     const viewScale = camera.scale(w, h)
@@ -119,13 +128,6 @@ export class Renderer {
 
     for (const food of sim.world.food) {
       this.drawFood(food, timeSec, viewScale)
-    }
-
-    if (hoverId != null && hoverId !== selectedId) {
-      const hovered = sim.world.creatures.find((c) => c.id === hoverId)
-      if (hovered) {
-        this.drawHoverHalo(hovered)
-      }
     }
 
     for (const creature of sim.world.creatures) {
@@ -226,10 +228,72 @@ export class Renderer {
     }
   }
 
-  private drawHoverHalo(creature: Creature): void {
-    const g = creature.genome
-    const hue = paletteHue(g.hue, g.diet)
-    drawBloom(this.ctx, hue, creature.x, creature.y, creatureRadius(g.size) * 2.6, 0.28)
+  private renderGlowLayer(
+    sim: Simulation,
+    camera: Camera,
+    w: number,
+    h: number,
+    alpha: number,
+    hoverId: number | null | undefined,
+  ): void {
+    if (!this.glowCanvas || !this.glowCtx) {
+      this.glowCanvas = document.createElement('canvas')
+      this.glowCanvas.width = this.canvas.width
+      this.glowCanvas.height = this.canvas.height
+      this.glowCtx = this.glowCanvas.getContext('2d')
+      if (!this.glowCtx) return
+    }
+    const gctx = this.glowCtx
+    const dpr = window.devicePixelRatio || 1
+    gctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    gctx.clearRect(0, 0, w, h)
+
+    gctx.save()
+    camera.applyTransform(gctx, w, h)
+
+    for (const creature of sim.world.creatures) {
+      const morph = morphologyFor(creature.id, creature.genome)
+      let x = creature.x
+      let y = creature.y
+      if (alpha > 0) {
+        const prev = this.prevById.get(creature.id)
+        if (prev) {
+          x = lerp(prev.x, creature.x, alpha)
+          y = lerp(prev.y, creature.y, alpha)
+        }
+      }
+      const energyAlpha = 0.5 + 0.45 * clamp(creature.energy / (80 * creature.genome.size), 0, 1)
+      drawBloom(
+        gctx,
+        morph.hue,
+        x,
+        y,
+        Math.max(morph.shape.radiusX, morph.shape.radiusY) * 2.2,
+        energyAlpha * 0.9,
+      )
+    }
+
+    if (hoverId != null && hoverId !== undefined) {
+      const hovered = sim.world.creatures.find((c) => c.id === hoverId)
+      if (hovered) {
+        const g = hovered.genome
+        drawBloom(
+          gctx,
+          paletteHue(g.hue, g.diet),
+          hovered.x,
+          hovered.y,
+          creatureRadius(g.size) * 2.6,
+          0.3,
+        )
+      }
+    }
+
+    gctx.restore()
+
+    this.ctx.save()
+    this.ctx.globalCompositeOperation = 'lighter'
+    this.ctx.drawImage(this.glowCanvas, 0, 0, w, h)
+    this.ctx.restore()
   }
 
   private drawSelection(creature: Creature, scale: number, timeSec: number): void {

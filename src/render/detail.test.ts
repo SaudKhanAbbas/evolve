@@ -36,13 +36,15 @@ describe('QualityController', () => {
     const c = new QualityController()
     c.update(80, 1 / 60)
     expect(c.quality).toBe(1)
-    run(c, 80, 1.2)
+    run(c, 80, 1)
+    expect(c.quality).toBe(1)
+    run(c, 80, 1.5)
     expect(c.quality).toBeLessThan(1)
   })
 
   it('recovers quality after sustained smooth frames', () => {
     const c = new QualityController()
-    run(c, 60, 1)
+    run(c, 60, 2)
     const degraded = c.quality
     expect(degraded).toBeLessThan(1)
     run(c, 5, 5)

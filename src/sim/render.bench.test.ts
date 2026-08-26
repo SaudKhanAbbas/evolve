@@ -7,6 +7,8 @@ import { Environment } from '../render/environment'
 import { Camera } from '../render/camera'
 import { EffectSystem } from '../render/effects'
 import { detailTier } from '../render/detail'
+import { drawBloom } from '../render/bloom'
+import { paletteHue } from '../render/palette'
 import type { Creature } from './creature'
 
 const BENCH = process.env.EVOLVE_BENCH === '1'
@@ -53,6 +55,8 @@ function benchDraw(
 ): void {
   const canvas = createCanvas(1280, 800)
   const ctx = canvas.getContext('2d')
+  const glow = createCanvas(1280, 800)
+  const glowCtx = glow.getContext('2d')
   const creatures = makePopulation(count)
   const camera = new Camera()
   const environment = new Environment()
@@ -67,14 +71,22 @@ function benchDraw(
     const t = f / 60
     ctx.fillStyle = 'rgba(2, 6, 14, 0.3)'
     ctx.fillRect(0, 0, 1280, 800)
+
+    glowCtx.clearRect(0, 0, 1280, 800)
     ctx.save()
     camera.applyTransform(ctx, 1280, 800)
     environment.drawBack(ctx, camera, t)
     for (const c of creatures) {
       const tier = mode === 'high' ? 'high' : detailTier(c.genome.size * 2.5 * viewScale, 1)
+      const hue = paletteHue(c.genome.hue, c.genome.diet)
+      drawBloom(glowCtx, hue, c.x, c.y, Math.max(c.genome.size * 2.5, 3) * 2.2, 0.9)
       drawOrganism(ctx, c, t, tier)
     }
     effects.draw(ctx)
+    ctx.restore()
+    ctx.save()
+    ctx.globalCompositeOperation = 'lighter'
+    ctx.drawImage(glow, 0, 0, 1280, 800)
     ctx.restore()
     environment.drawVignette(ctx, 1280, 800)
   }

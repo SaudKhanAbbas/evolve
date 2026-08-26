@@ -21,9 +21,9 @@ function buildSprites(): void {
     if (!ctx) continue
     const half = SPRITE_SIZE / 2
     const gradient = ctx.createRadialGradient(half, half, 0, half, half, half)
-    gradient.addColorStop(0, `hsla(${hue}, 100%, 88%, 0.85)`)
-    gradient.addColorStop(0.22, `hsla(${hue}, 95%, 66%, 0.42)`)
-    gradient.addColorStop(0.55, `hsla(${hue}, 90%, 55%, 0.13)`)
+    gradient.addColorStop(0, `hsla(${hue}, 100%, 90%, 0.95)`)
+    gradient.addColorStop(0.2, `hsla(${hue}, 95%, 68%, 0.55)`)
+    gradient.addColorStop(0.5, `hsla(${hue}, 90%, 56%, 0.2)`)
     gradient.addColorStop(1, `hsla(${hue}, 90%, 50%, 0)`)
     ctx.fillStyle = gradient
     ctx.fillRect(0, 0, SPRITE_SIZE, SPRITE_SIZE)

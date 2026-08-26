@@ -11,8 +11,9 @@ export function detailTier(screenRadius: number, quality: number): DetailTier {
 }
 
 const FRAME_BUDGET_MS = 13
-const DOWNGRADE_MS = 0.8
+const DOWNGRADE_MS = 1.6
 const UPGRADE_MS = 2.5
+const DOWNGRADE_STEP = 0.2
 
 export class QualityController {
   private emaMs = FRAME_BUDGET_MS
@@ -36,7 +37,7 @@ export class QualityController {
     }
 
     if (this.overTime >= DOWNGRADE_MS) {
-      this.level = Math.max(0, this.level - 0.25)
+      this.level = Math.max(0, this.level - DOWNGRADE_STEP)
       this.overTime = 0
     }
     if (this.underTime >= UPGRADE_MS) {

@@ -1,6 +1,5 @@
 import type { Creature } from '../sim/creature'
 import { SPEED_SCALE } from '../sim/config'
-import { drawBloom } from './bloom'
 import { morphologyFor } from './morphology'
 import type { Morphology } from './morphology'
 import type { DetailTier } from './detail'
@@ -28,7 +27,6 @@ export function drawOrganism(
   const alpha = 0.5 + 0.45 * energyFrac
 
   if (tier === 'distant') {
-    drawBloom(ctx, hue, drawX, drawY, Math.max(rx, ry) * 1.7, alpha * 0.85)
     ctx.fillStyle = `hsla(${hue}, 90%, 82%, ${alpha})`
     ctx.beginPath()
     ctx.arc(drawX, drawY, ry * 0.55, 0, TAU)
@@ -39,7 +37,6 @@ export function drawOrganism(
   const speedNorm = clamp(Math.hypot(creature.vx, creature.vy) / (g.maxSpeed * SPEED_SCALE), 0, 1)
 
   if (tier === 'low') {
-    drawBloom(ctx, hue, drawX, drawY, Math.max(rx, ry) * 2, alpha * 0.75)
     ctx.save()
     ctx.translate(drawX, drawY)
     ctx.rotate(drawHeading)
@@ -63,8 +60,6 @@ export function drawOrganism(
   ctx.translate(drawX, drawY)
   ctx.rotate(drawHeading + lean * 0.12)
   ctx.translate(0, idleBob)
-
-  drawBloom(ctx, hue, 0, 0, Math.max(rx, ry) * 2.3, alpha * 0.7)
 
   drawTail()
   if (tier === 'high' && g.aggression > 0.15) {
