@@ -145,6 +145,13 @@ function frame(now: number): void {
     performance.now() - frameStart,
   )
 
+  if (selection.creatureId != null) {
+    const selected = simulation.world.creatures.find((c) => c.id === selection.creatureId)
+    if (selected) {
+      inspector.renderPortrait(selected, now / 1000)
+    }
+  }
+
   if (hud) {
     hud.maybeSample(simulation)
     if (++framesUntilHud >= 10) {

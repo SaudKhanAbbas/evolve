@@ -365,6 +365,16 @@ body {
   animation: inspector-rise 0.18s ease-out;
 }
 
+#inspector .portrait {
+  display: block;
+  width: 100%;
+  height: 118px;
+  border-radius: 8px;
+  border: 1px solid rgba(45, 212, 191, 0.16);
+  background: #02070f;
+  margin: 2px 0 12px;
+}
+
 @keyframes inspector-rise {
   from {
     opacity: 0;

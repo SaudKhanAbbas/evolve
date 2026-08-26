@@ -2,6 +2,7 @@ import type { Creature } from '../sim/creature'
 import { GENE_LIMITS } from '../sim/genome'
 import type { GeneKey } from '../sim/genome'
 import { creatureCapacity } from '../sim/world'
+import { drawOrganism } from '../render/creatureArtist'
 
 interface TraitRow {
   key: GeneKey
@@ -33,6 +34,7 @@ const TRAIT_ROWS: TraitRow[] = [
 
 interface ViewRefs {
   title: HTMLElement
+  portrait: HTMLCanvasElement | null
   generation: HTMLElement
   age: HTMLElement
   offspring: HTMLElement
@@ -89,6 +91,7 @@ export class Inspector {
     this.root.innerHTML = `
       <div class="cell-view">
         <h2 id="inspector-title">CELL #${creature.id}</h2>
+        <canvas id="ref-portrait" class="portrait" aria-label="Selected organism preview"></canvas>
         <div class="stat-row"><span>GENERATION</span><span class="value" id="ref-generation">—</span></div>
         <div class="stat-row"><span>AGE</span><span class="value" id="ref-age">—</span></div>
         <div class="stat-row"><span>OFFSPRING</span><span class="value" id="ref-offspring">—</span></div>
@@ -116,6 +119,7 @@ export class Inspector {
 
     this.refs = {
       title: this.root.querySelector('#inspector-title') as HTMLElement,
+      portrait: this.root.querySelector('#ref-portrait'),
       generation: this.root.querySelector('#ref-generation') as HTMLElement,
       age: this.root.querySelector('#ref-age') as HTMLElement,
       offspring: this.root.querySelector('#ref-offspring') as HTMLElement,
@@ -161,5 +165,41 @@ export class Inspector {
       const { min, max } = GENE_LIMITS[key]
       fillEl.style.width = `${(((g[key] - min) / (max - min)) * 100).toFixed(1)}%`
     }
+  }
+
+  renderPortrait(creature: Creature, timeSec: number): void {
+    const canvas = this.refs?.portrait
+    if (!canvas) return
+    const dpr = window.devicePixelRatio || 1
+    const cssW = canvas.clientWidth || 200
+    const cssH = canvas.clientHeight || 120
+    const targetW = Math.floor(cssW * dpr)
+    const targetH = Math.floor(cssH * dpr)
+    if (canvas.width !== targetW || canvas.height !== targetH) {
+      canvas.width = targetW
+      canvas.height = targetH
+    }
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    ctx.fillStyle = '#02070f'
+    ctx.fillRect(0, 0, cssW, cssH)
+
+    const g = creature.genome
+    const radius = 3 + g.size * 2.5
+    const scale = (Math.min(cssW, cssH) * 0.34) / radius
+
+    const glow = ctx.createRadialGradient(cssW / 2, cssH / 2, 0, cssW / 2, cssH / 2, cssH * 0.62)
+    glow.addColorStop(0, `hsla(${g.hue}, 80%, 40%, 0.22)`)
+    glow.addColorStop(1, 'rgba(2, 7, 15, 0)')
+    ctx.fillStyle = glow
+    ctx.fillRect(0, 0, cssW, cssH)
+
+    ctx.save()
+    ctx.translate(cssW / 2, cssH / 2 + Math.sin(timeSec * 1.3) * 2.5)
+    ctx.scale(scale, scale)
+    drawOrganism(ctx, creature, timeSec, 'high', 0, 0, -0.18 + Math.sin(timeSec * 0.6) * 0.08)
+    ctx.restore()
   }
 }
