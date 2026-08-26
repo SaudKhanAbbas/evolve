@@ -4,15 +4,19 @@ An interactive evolution simulator for the browser. Watch a population of proced
 bioluminescent organisms mutate, compete, and adapt over thousands of generations — driven purely
 by natural selection, never by scripted outcomes.
 
-> **Status:** Work in progress — simulation engine live (Phase 1 complete). Rendering, UI, and
-> polish phases ongoing.
+> **Status:** Interactive simulation live — deterministic engine, pan/zoom camera, procedural
+> organisms, playback controls, creature inspector, and live population charts.
 
 ## Working Today
 
 - Deterministic seeded ecosystem: genomes, bounded mutation, energy economy, grazing,
-  reproduction, starvation — all verified by a 54-test Vitest suite including long-run
-  stability and seed-reproducibility checks
-- Live browser view of the evolving world (glowing procedural cells + plants)
+  reproduction, starvation — verified by a Vitest suite including long-run stability and
+  seed-reproducibility checks
+- Pan/zoom camera anchored at the cursor; click any cell to inspect its genome in real time
+- Procedurally drawn bioluminescent organisms: body proportions, tails, fins, color, and glow
+  all derive from genes; birth/death effects punctuate the population
+- Pause/play with 0.25x–10x speed control (Space toggles pause)
+- Live HUD: population curve and average-speed-gene sparklines, generation counter
 - Open `?seed=1234` in the URL to run any seed
 
 ## Planned Features

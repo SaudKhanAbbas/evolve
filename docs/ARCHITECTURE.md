@@ -4,8 +4,8 @@
 
 ```
 src/
-├── main.ts               Entry point: canvas boot, fixed-timestep loop, HUD text
-├── style.css             Global dark deep-sea theme + HUD styling
+├── main.ts               Entry point: boot, fixed-timestep loop, wiring
+├── style.css             Deep-sea theme + HUD/controls/inspector styling
 ├── core/
 │   └── config.ts         Visual palette (backdrop colors)
 ├── sim/                  Headless simulation engine — zero DOM/canvas imports
@@ -19,13 +19,33 @@ src/
 │   ├── energy.ts         Metabolism/movement costs, food sensing & eating
 │   ├── behavior.ts       Gene-driven steering (wander / seek / flee) + motion integration
 │   ├── reproduction.ts   Maturity/energy gating, offspring creation
+│   ├── events.ts         SimEvent/SimObserver types (birth/death notifications)
 │   ├── simulation.ts     Simulation class: orchestrates one deterministic tick
 │   └── *.test.ts         Unit + headless stability tests (Vitest)
-├── render/
-│   └── renderer.ts       Canvas 2D drawing: backdrop, food, glowing creatures, trails
-└── utils/
-    └── math.ts           clamp, lerp, distSq, TAU
+├── render/               Canvas 2D presentation layer (reads sim, never writes it)
+│   ├── camera.ts         Pan/zoom camera: fit scaling, cursor anchoring, world clamping
+│   ├── renderer.ts       Backdrop, trails, food, boundary, selection highlight
+│   ├── creatureArtist.ts Procedural genome-driven organism drawing
+│   ├── effects.ts        Render-only birth ring / death puff particles
+│   ├── series.ts         Bounded numeric sample buffer
+│   └── sparkline.ts      Tiny custom canvas chart for HUD graphs
+└── ui/                   DOM overlay (reads sim state, never mutates it)
+    ├── input.ts          Pointer/wheel handling mapped onto the camera + picking
+    ├── controls.ts       Play/pause + speed buttons (Space toggles pause)
+    ├── hud.ts            Stats text, sampling cadence, sparkline updates
+    ├── inspector.ts      Selected-cell genome panel
+    └── selection.ts      Currently selected creature id
+
+Plus `src/utils/math.ts` (clamp, lerp, distSq, TAU) shared by sim and render.
 ```
+
+## Rendering Pipeline
+
+Each frame (`requestAnimationFrame`): advance 0..N fixed sim steps through an accumulator scaled
+by playback speed → update render-side effects with wall dt → `Renderer.draw` paints backdrop,
+applies `Camera.applyTransform` (world→screen), draws food, organisms (procedural artist), effect
+particles, then the selection highlight. A per-frame trail-fade fill gives motion smear; it is
+replaced by a full backdrop repaint whenever the camera moved, preventing ghosting during pans.
 
 ## Deterministic Tick Order
 
@@ -44,7 +64,8 @@ Births/deaths are batched after iteration so update order is stable and reproduc
 ### Fixed-timestep simulation, decoupled rendering
 
 The simulation advances in fixed ticks (30 tps); rendering runs on `requestAnimationFrame` with an
-accumulator. A speed multiplier will run N ticks per frame rather than scaling delta time.
+accumulator. Playback speed multiplies accumulated time so 10x runs 10 ticks per sim-second of
+wall clock while every step stays a fixed `1/30s` — determinism is unaffected.
 
 ### Determinism
 
@@ -74,6 +95,11 @@ will reuse the same structure.
 
 ## Current Status
 
-Implemented through Day 1: full engine (genetics, mutation, energy lifecycle, steering behavior,
-reproduction, regrowth, spatial indexing), 54 passing tests including long-run stability and
-seed determinism, plus a basic browser view. Camera, inspector, charts, and god tools are next.
+Implemented through Day 2: full deterministic engine (genetics, mutation, energy lifecycle,
+steering behavior, reproduction, regrowth, spatial indexing), pan/zoom camera, procedural
+genome-driven organism rendering, birth/death effect particles, playback controls (pause +
+0.25x–10x), click-to-inspect cell panel with live genome bars, and an HUD with population/trait
+sparklines. 77 passing tests including long-run stability and seed determinism.
+
+Next up (Day 3): environmental god events (food burst, drought, meteor), shareable-seed polish,
+trait-distribution overlays, deployment, final documentation pass.

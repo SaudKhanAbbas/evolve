@@ -35,8 +35,8 @@ reproduction, sound, touch support.
 | ----- | ------------------------------------------------------------------ | ----------- |
 | 0     | Scaffold, tooling, docs                                            | ✅ Complete |
 | 1     | Sim engine (genetics, energy, lifecycle, spatial grid) + tests     | ✅ Complete |
-| 2     | Rendering: procedural creatures, camera, animation                 | Planned     |
-| 3     | Interaction: inspector, controls, charts, overlays                 | Planned     |
+| 2     | Rendering: procedural creatures, camera, animation                 | ✅ Complete |
+| 3     | Interaction: inspector, controls, charts, overlays                 | ✅ Complete |
 | 4     | Depth: predation tuning, speciation, environment zones             | Planned     |
 | 5     | Polish: particles, glow, scenarios, shareable seeds                | Planned     |
 | 6     | Stretch: neural-net brains, sexual reproduction, paintable terrain | Maybe       |
