@@ -10,33 +10,38 @@
     <title>EVOLVE</title>
   </head>
   <body>
-    <canvas id="app"></canvas>
+    <div id="app-shell">
+      <aside id="hud-panel" aria-label="Simulation statistics">
+        <div id="hud" aria-live="off"></div>
+        <div class="chart-block">
+          <div class="chart-label">POPULATION</div>
+          <canvas id="chart-pop"></canvas>
+        </div>
+        <div class="chart-block">
+          <div class="chart-label">AVG SPEED GENE</div>
+          <canvas id="chart-speed"></canvas>
+        </div>
+      </aside>
 
-    <div id="hud-panel">
-      <div id="hud" aria-live="off"></div>
-      <div class="chart-block">
-        <div class="chart-label">POPULATION</div>
-        <canvas id="chart-pop"></canvas>
-      </div>
-      <div class="chart-block">
-        <div class="chart-label">AVG SPEED GENE</div>
-        <canvas id="chart-speed"></canvas>
-      </div>
+      <main id="viewport">
+        <canvas id="app"></canvas>
+        <div id="controls">
+          <button id="play-pause" class="ctrl-btn primary" title="Toggle pause (Space)">
+            PAUSE
+          </button>
+          <div id="speed-group" role="group" aria-label="Simulation speed">
+            <button class="ctrl-btn speed" data-speed="0.25">0.25×</button>
+            <button class="ctrl-btn speed" data-speed="0.5">0.5×</button>
+            <button class="ctrl-btn speed active" data-speed="1">1×</button>
+            <button class="ctrl-btn speed" data-speed="2">2×</button>
+            <button class="ctrl-btn speed" data-speed="5">5×</button>
+            <button class="ctrl-btn speed" data-speed="10">10×</button>
+          </div>
+        </div>
+      </main>
+
+      <aside id="inspector" aria-label="Creature inspector"></aside>
     </div>
-
-    <div id="controls">
-      <button id="play-pause" class="ctrl-btn primary" title="Toggle pause (Space)">PAUSE</button>
-      <div id="speed-group" role="group" aria-label="Simulation speed">
-        <button class="ctrl-btn speed" data-speed="0.25">0.25×</button>
-        <button class="ctrl-btn speed" data-speed="0.5">0.5×</button>
-        <button class="ctrl-btn speed active" data-speed="1">1×</button>
-        <button class="ctrl-btn speed" data-speed="2">2×</button>
-        <button class="ctrl-btn speed" data-speed="5">5×</button>
-        <button class="ctrl-btn speed" data-speed="10">10×</button>
-      </div>
-    </div>
-
-    <aside id="inspector" hidden></aside>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

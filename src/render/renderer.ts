@@ -16,6 +16,7 @@ export class Renderer {
   private lastCamX = Number.NaN
   private lastCamY = Number.NaN
   private lastCamZoom = Number.NaN
+  private resizeRetryQueued = false
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas
@@ -27,18 +28,34 @@ export class Renderer {
     this.resize()
   }
 
+  private cssSize(): { w: number; h: number } {
+    return { w: this.canvas.clientWidth, h: this.canvas.clientHeight }
+  }
+
   resize(): void {
+    const { w, h } = this.cssSize()
+    if (w === 0 || h === 0) {
+      if (!this.resizeRetryQueued) {
+        this.resizeRetryQueued = true
+        requestAnimationFrame(() => {
+          this.resizeRetryQueued = false
+          this.resize()
+        })
+      }
+      return
+    }
+
     const dpr = window.devicePixelRatio || 1
-    this.canvas.width = Math.floor(window.innerWidth * dpr)
-    this.canvas.height = Math.floor(window.innerHeight * dpr)
+    this.canvas.width = Math.floor(w * dpr)
+    this.canvas.height = Math.floor(h * dpr)
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
     this.lastCamX = Number.NaN
-    this.paintBackdrop(window.innerWidth, window.innerHeight)
+    this.paintBackdrop(w, h)
   }
 
   draw(sim: Simulation, camera: Camera, effects?: EffectSystem, selectedId?: number | null): void {
-    const w = window.innerWidth
-    const h = window.innerHeight
+    const { w, h } = this.cssSize()
+    if (w === 0 || h === 0) return
     const timeSec = performance.now() / 1000
 
     if (

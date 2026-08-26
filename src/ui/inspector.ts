@@ -43,6 +43,14 @@ export class Inspector {
 
   constructor(root: HTMLElement) {
     this.root = root
+    this.showPlaceholder()
+  }
+
+  showPlaceholder(): void {
+    this.root.innerHTML = `
+      <h2>INSPECTOR</h2>
+      <div class="placeholder">Click a cell in the simulation to inspect its genome, energy, and lineage stats.</div>
+    `
   }
 
   show(creature: Creature): void {
@@ -71,11 +79,9 @@ export class Inspector {
       ${traitRows}
       <div class="swatch-row"><span>HUE</span><span class="hue-swatch" style="background:hsl(${g.hue}, 85%, 60%)"></span><span>${Math.round(g.hue)}°</span></div>
     `
-    this.root.hidden = false
   }
 
   hide(): void {
-    this.root.hidden = true
-    this.root.innerHTML = ''
+    this.showPlaceholder()
   }
 }

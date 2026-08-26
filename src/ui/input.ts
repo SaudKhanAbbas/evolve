@@ -4,6 +4,13 @@ export interface InputActions {
 
 const DRAG_THRESHOLD_PX = 4
 
+interface LocalPoint {
+  x: number
+  y: number
+  vw: number
+  vh: number
+}
+
 export function attachInput(
   canvas: HTMLCanvasElement,
   camera: {
@@ -19,31 +26,38 @@ export function attachInput(
   let lastX = 0
   let lastY = 0
 
-  function viewport(): { w: number; h: number } {
-    return { w: window.innerWidth, h: window.innerHeight }
+  function toLocal(event: PointerEvent | WheelEvent): LocalPoint {
+    const rect = canvas.getBoundingClientRect()
+    return {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+      vw: canvas.clientWidth,
+      vh: canvas.clientHeight,
+    }
   }
 
   function onPointerDown(event: PointerEvent): void {
     if (event.button !== 0) return
+    const p = toLocal(event)
     pointerDown = true
     dragging = false
-    lastX = event.clientX
-    lastY = event.clientY
+    lastX = p.x
+    lastY = p.y
     canvas.setPointerCapture(event.pointerId)
   }
 
   function onPointerMove(event: PointerEvent): void {
     if (!pointerDown) return
-    const dx = event.clientX - lastX
-    const dy = event.clientY - lastY
+    const p = toLocal(event)
+    const dx = p.x - lastX
+    const dy = p.y - lastY
     if (!dragging && Math.hypot(dx, dy) > DRAG_THRESHOLD_PX) dragging = true
     if (dragging) {
-      const vp = viewport()
-      const s = camera.scale(vp.w, vp.h)
-      camera.panBy(-dx / s, -dy / s, vp.w, vp.h)
+      const s = camera.scale(p.vw, p.vh)
+      camera.panBy(-dx / s, -dy / s, p.vw, p.vh)
     }
-    lastX = event.clientX
-    lastY = event.clientY
+    lastX = p.x
+    lastY = p.y
   }
 
   function onPointerUp(event: PointerEvent): void {
@@ -51,18 +65,17 @@ export function attachInput(
     pointerDown = false
     canvas.releasePointerCapture(event.pointerId)
     if (!dragging && actions.onSelect) {
-      const vp = viewport()
-      const world = camera.screenToWorld(event.clientX, event.clientY, vp.w, vp.h)
+      const p = toLocal(event)
+      const world = camera.screenToWorld(p.x, p.y, p.vw, p.vh)
       actions.onSelect(world.x, world.y)
     }
   }
 
   function onWheel(event: WheelEvent): void {
     event.preventDefault()
-    const vp = viewport()
+    const p = toLocal(event)
     const factor = Math.exp(-event.deltaY * 0.0015)
-    const rect = canvas.getBoundingClientRect()
-    camera.zoomAt(event.clientX - rect.left, event.clientY - rect.top, factor, vp.w, vp.h)
+    camera.zoomAt(p.x, p.y, factor, p.vw, p.vh)
   }
 
   canvas.addEventListener('pointerdown', onPointerDown)
