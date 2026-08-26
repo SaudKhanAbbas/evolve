@@ -9,7 +9,7 @@ import { drawOrganism } from './creatureArtist'
 import { paletteHue } from './palette'
 import { Environment } from './environment'
 import type { EffectSystem } from './effects'
-import { clamp, lerp, lerpAngle } from '../utils/math'
+import { TAU, clamp, lerp, lerpAngle } from '../utils/math'
 
 interface InterpState {
   x: number
@@ -153,9 +153,14 @@ export class Renderer {
             heading: creature.heading,
             phase: creature.id * 1.7,
             seenTick: tick,
+            targetLean: 0,
+            lean: 0,
           }
           this.prevById.set(creature.id, entry)
         } else {
+          let dH = creature.heading - entry.heading
+          dH = (((dH % TAU) + TAU * 1.5) % TAU) - TAU / 2
+          entry.targetLean = clamp(dH * 0.28, -1, 1)
           entry.x = creature.x
           entry.y = creature.y
           entry.heading = creature.heading
