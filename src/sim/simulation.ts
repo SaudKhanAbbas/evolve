@@ -124,6 +124,7 @@ export class Simulation {
       if (distSq(creature.x, creature.y, nearest.x, nearest.y) <= eatRange * eatRange) {
         consumeFood(creature, capacity, nearest)
         eatenFoodIds.add(nearest.id)
+        this.emit('eat', nearest.x, nearest.y, creature.genome.hue, creature.genome.diet, 0.6)
       }
     }
 

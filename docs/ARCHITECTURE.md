@@ -42,10 +42,40 @@ Plus `src/utils/math.ts` (clamp, lerp, distSq, TAU) shared by sim and render.
 ## Rendering Pipeline
 
 Each frame (`requestAnimationFrame`): advance 0..N fixed sim steps through an accumulator scaled
-by playback speed → update render-side effects with wall dt → `Renderer.draw` paints backdrop,
-applies `Camera.applyTransform` (world→screen), draws food, organisms (procedural artist), effect
-particles, then the selection highlight. A per-frame trail-fade fill gives motion smear; it is
-replaced by a full backdrop repaint whenever the camera moved, preventing ghosting during pans.
+by playback speed → compute interpolation alpha (accumulator fraction) → update render-side
+systems with wall dt → `Renderer.draw` paints backdrop, applies the eased camera transform, then
+layers: marine snow → outside-arena dim → boundary → food → organisms (interpolated) → effect
+particles → hover halo / selection rings → screen-space vignette.
+
+### Visual systems
+
+- **Curated palette** (`palette.ts`): display hue = f(gene hue, diet) confined to a bioluminescent
+  band — herbivore cyan/teal/blue, omnivore blue/indigo/violet, carnivore violet/magenta. The hue
+  gene still drives variation within the band; long runs stay visually coherent.
+- **Morphology** (`morphology.ts`): per-creature membrane wobble and 1–3 orbiting organelles,
+  deterministically derived from creature id + genome via a stable hash and cached by id.
+- **Bloom sprites** (`bloom.ts`): pre-rendered radial-gradient sprites per curated hue bucket
+  composited with `lighter` replace per-creature `shadowBlur`; zoom-aware LOD swaps distant
+  organisms to bloom + bright core. No population-based glow cutoff.
+- **Atmosphere** (`environment.ts`): two-depth parallax marine snow (seeded, wrapping), vignette,
+  outside-arena dimming, layered boundary, pulsing food.
+- **Interpolation** (`renderer.ts`): previous-tick positions/headings are snapshotted render-side
+  when the sim tick advances; organisms draw at lerp(prev, current, accumulatorFraction). Tail
+  wave phase is accumulated presentation-side from real velocity; idle drift, velocity
+  squash/stretch, and turn lean are derived in the same snapshot state.
+
+### Camera
+
+`CameraRig` holds target and eased cameras; input mutates the target through the existing tested
+`Camera` math (cursor-anchored zoom, clamping), while the eased camera converges exponentially
+(~14/s) and is what renders. Determinism and picking use eased values consistently.
+
+### Lifecycle effects
+
+The simulation emits purely observational `birth`, `death`, and `eat` events through the optional
+observer. Eating notifications add no RNG calls, no ordering changes, and no entity-state writes;
+a determinism test verifies observed and unobserved runs serialize identically. Render-side
+effects: birth bloom-pop, desaturating death dissolve, brief eat flash (rate-capped).
 
 ## Deterministic Tick Order
 

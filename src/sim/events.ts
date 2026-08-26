@@ -1,4 +1,4 @@
-export type SimEventType = 'birth' | 'death'
+export type SimEventType = 'birth' | 'death' | 'eat'
 
 export interface SimEvent {
   type: SimEventType

@@ -15,7 +15,29 @@ describe('simulation observer', () => {
       expect(e.y).toBeGreaterThanOrEqual(0)
       expect(e.y).toBeLessThanOrEqual(sim.world.height)
       expect(Number.isFinite(e.hue)).toBe(true)
+      expect(Number.isFinite(e.diet)).toBe(true)
     }
+  })
+
+  it('reports eating events while the population grazes', () => {
+    const events: SimEvent[] = []
+    const sim = new Simulation(21, true, (e) => events.push(e))
+    sim.advance(30)
+    const eats = events.filter((e) => e.type === 'eat')
+    expect(eats.length).toBeGreaterThan(0)
+    for (const e of eats) {
+      expect(e.x).toBeGreaterThanOrEqual(0)
+      expect(e.x).toBeLessThanOrEqual(sim.world.width)
+      expect(Number.isFinite(e.diet)).toBe(true)
+    }
+  })
+
+  it('does not alter deterministic world evolution when observed', () => {
+    const silent = new Simulation(77)
+    const watched = new Simulation(77, true, () => {})
+    silent.advance(20)
+    watched.advance(20)
+    expect(JSON.stringify(watched.world)).toBe(JSON.stringify(silent.world))
   })
 
   it('reports deaths when food runs out', () => {

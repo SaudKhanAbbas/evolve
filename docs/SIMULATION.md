@@ -62,6 +62,13 @@ Motion is kinematic (velocity from heading/speed) with wall reflections in the b
   accumulated fractionally per tick for smooth deterministic growth
 - Spatial hash (64px cells) rebuilt each tick indexes food for sense/eat queries
 
+## Observer Events **[implemented]**
+
+The simulation can push purely observational events to a render-side listener: `birth`, `death`,
+and `eat`. Events carry position plus the creature's raw hue/diet/size for visual mapping. They
+are emitted only when an observer is attached, consume no RNG draws, and never touch entity
+state — observed and unobserved runs are byte-identical (tested).
+
 ## Planned Depth **[designed]**
 
 - Predation: carnivores gain energy from prey (activates `diet`, `aggression`, flee behavior)
