@@ -97,11 +97,29 @@ export function drawOrganism(
   ctx.lineWidth = Math.max(ry * 0.06, 0.5)
   ctx.stroke(morph.rimPath)
 
+  if (tier === 'high') {
+    ctx.globalAlpha = alpha * 0.28
+    ctx.strokeStyle = `hsla(${hue}, 70%, 88%, 1)`
+    ctx.lineWidth = Math.max(ry * 0.09, 0.4)
+    ctx.beginPath()
+    ctx.moveTo(-rx * 0.55, 0)
+    ctx.quadraticCurveTo(-rx * 0.1, ry * 0.1, rx * 0.24, 0)
+    ctx.stroke()
+    ctx.globalAlpha = alpha
+  }
+
   const pulse = 1 + 0.08 * Math.sin(wavePhase * 0.8)
   ctx.fillStyle = 'rgba(235, 255, 250, 0.75)'
   ctx.beginPath()
   ctx.ellipse(rx * 0.3, 0, ry * 0.32 * pulse, ry * 0.26 * pulse, 0, 0, TAU)
   ctx.fill()
+
+  if (tier === 'high') {
+    ctx.fillStyle = `hsla(${hue}, 100%, 92%, ${0.5 + 0.3 * pulse})`
+    ctx.beginPath()
+    ctx.arc(rx * 0.62, 0, ry * 0.12, 0, TAU)
+    ctx.fill()
+  }
 
   if (tier === 'high' && Math.abs(g.diet) > 0.2) {
     ctx.fillStyle = morph.colors.speck
