@@ -21,7 +21,7 @@ const canvas = document.querySelector<HTMLCanvasElement>('#app')
 if (!canvas) {
   throw new Error('EVOLVE: #app canvas element not found')
 }
-const hudText = document.querySelector<HTMLDivElement>('#hud')
+const hudPanel = document.querySelector<HTMLElement>('#hud-panel')
 const popCanvas = document.querySelector<HTMLCanvasElement>('#chart-pop')
 const speedCanvas = document.querySelector<HTMLCanvasElement>('#chart-speed')
 
@@ -31,8 +31,8 @@ const renderer = new Renderer(canvas)
 const camera = new CameraRig()
 
 let hud: Hud | null = null
-if (hudText && popCanvas && speedCanvas) {
-  hud = new Hud(hudText, popCanvas, speedCanvas)
+if (hudPanel && popCanvas && speedCanvas) {
+  hud = new Hud(hudPanel, popCanvas, speedCanvas)
 }
 
 const inspectorRoot = document.querySelector<HTMLElement>('#inspector')

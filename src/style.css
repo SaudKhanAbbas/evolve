@@ -34,32 +34,124 @@ body {
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 16px 16px;
+  gap: 16px;
+  padding: 18px 16px;
   overflow-y: auto;
   background: rgba(3, 10, 20, 0.72);
   border-right: 1px solid rgba(45, 212, 191, 0.14);
 }
 
-#hud {
-  color: #9be8dd;
-  font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
-  font-size: 13px;
-  line-height: 1.7;
-  letter-spacing: 0.04em;
-  white-space: pre;
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(45, 212, 191, 0.16);
+  padding-bottom: 12px;
 }
 
-.chart-block {
-  margin-top: 4px;
+.panel-header h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.42em;
+  color: #d9fff7;
+  text-indent: 0.42em;
 }
 
-.chart-label {
+.status-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   color: #5da99e;
   font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
   font-size: 10px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #34d399;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.9);
+  animation: pulse-dot 2.2s ease-in-out infinite;
+}
+
+.dot.paused {
+  background: #fbbf24;
+  box-shadow: 0 0 8px rgba(251, 191, 36, 0.85);
+  animation: none;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.panel-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section-label {
+  color: #4e8a80;
+  font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+}
+
+#hud {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#hud .stat-row,
+#inspector .stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+#hud .stat-label {
+  color: #5da99e;
+  font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+}
+
+#hud .stat-value {
+  color: #c9fff4;
+  font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-block {
+  margin-top: 2px;
+}
+
+.chart-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  color: #4e8a80;
+  font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
   margin-bottom: 4px;
+}
+
+.chart-value {
+  color: #9be8dd;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
 }
 
 #chart-pop,
@@ -181,10 +273,9 @@ body {
   padding-top: 6px;
 }
 
-#inspector .stat-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 4px;
+#inspector .stat-row .value {
+  font-variant-numeric: tabular-nums;
+  color: #d9fff7;
 }
 
 #inspector .trait {
@@ -199,27 +290,42 @@ body {
   margin-bottom: 3px;
 }
 
+#inspector .trait-head .trait-value {
+  font-variant-numeric: tabular-nums;
+  color: #c9fff4;
+}
+
 #inspector .bar {
   height: 5px;
   border-radius: 3px;
-  background: rgba(45, 212, 191, 0.12);
+  background: rgba(45, 212, 191, 0.1);
   overflow: hidden;
 }
 
 #inspector .bar .fill {
   height: 100%;
   border-radius: 3px;
-  background: linear-gradient(90deg, rgba(45, 212, 191, 0.65), rgba(139, 92, 246, 0.75));
+  background: linear-gradient(90deg, rgba(139, 92, 246, 0.8), rgba(236, 72, 153, 0.75));
+  transition: width 0.18s linear;
 }
 
 #inspector .bar.energy .fill {
-  background: linear-gradient(90deg, rgba(45, 212, 191, 0.8), rgba(94, 234, 212, 0.95));
+  background: linear-gradient(90deg, rgba(45, 212, 191, 0.85), rgba(94, 234, 212, 0.95));
 }
 
-#inspector .diet-note {
-  margin-top: 10px;
-  font-size: 11px;
-  color: #6db9ae;
+#inspector .cell-view {
+  animation: inspector-rise 0.18s ease-out;
+}
+
+@keyframes inspector-rise {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 #inspector .swatch-row {

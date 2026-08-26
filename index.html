@@ -12,15 +12,52 @@
   <body>
     <div id="app-shell">
       <aside id="hud-panel" aria-label="Simulation statistics">
-        <div id="hud" aria-live="off"></div>
-        <div class="chart-block">
-          <div class="chart-label">POPULATION</div>
-          <canvas id="chart-pop"></canvas>
-        </div>
-        <div class="chart-block">
-          <div class="chart-label">AVG SPEED GENE</div>
-          <canvas id="chart-speed"></canvas>
-        </div>
+        <header class="panel-header">
+          <h1>EVOLVE</h1>
+          <div class="status-line">
+            <span id="status-dot" class="dot"></span>
+            <span id="status-text">LIVE</span>
+          </div>
+        </header>
+
+        <section class="panel-section">
+          <div class="section-label">ECOSYSTEM</div>
+          <div id="hud" aria-live="off">
+            <div class="stat-row">
+              <span class="stat-label">POPULATION</span
+              ><span class="stat-value" data-stat="population">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">GENERATION</span
+              ><span class="stat-value" data-stat="generation">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">TIME</span><span class="stat-value" data-stat="time">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">SPEED</span
+              ><span class="stat-value" data-stat="speed">—</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">SEED</span><span class="stat-value" data-stat="seed">—</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel-section">
+          <div class="chart-block">
+            <div class="chart-label">
+              <span>POPULATION</span><span id="chart-pop-value" class="chart-value">—</span>
+            </div>
+            <canvas id="chart-pop"></canvas>
+          </div>
+          <div class="chart-block">
+            <div class="chart-label">
+              <span>AVG SPEED GENE</span><span id="chart-speed-value" class="chart-value">—</span>
+            </div>
+            <canvas id="chart-speed"></canvas>
+          </div>
+        </section>
       </aside>
 
       <main id="viewport">
