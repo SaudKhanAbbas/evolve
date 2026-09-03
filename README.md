@@ -6,6 +6,10 @@ There are no scripted outcomes or predefined winners. Every run develops from th
 
 Built with TypeScript and Canvas 2D.
 
+## Live Demo
+
+**[Launch EVOLVE](https://evolve-beryl.vercel.app/)**
+
 ## What You Can Do
 
 - Watch a living population evolve across generations
@@ -115,7 +119,7 @@ This makes runs reproducible and allows the simulation engine to be tested indep
 | Testing | Vitest |
 | Linting | ESLint |
 | Formatting | Prettier |
-| Deployment | GitHub Pages |
+| Deployment | Vercel |
 
 ## Getting Started
 
